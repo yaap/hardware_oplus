@@ -11,7 +11,6 @@
 /(vendor|system/vendor)/bin/hw/vendor\.lineage\.powershare@1\.0-service\.oplus    u:object_r:hal_lineage_powershare_default_exec:s0
 
 # Display
-/(vendor|system/vendor)/bin/hw/vendor\.lineage\.livedisplay@2\.1-service\.oplus    u:object_r:hal_lineage_livedisplay_qti_exec:s0
 /dev/oplus_display                                                                 u:object_r:graphics_device:s0
 
 # Display (Pixelworks)
