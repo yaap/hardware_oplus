@@ -15,6 +15,7 @@ import android.media.AudioSystem
 import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings
 import android.view.KeyEvent
 import com.android.internal.os.DeviceKeyHandler
@@ -46,10 +47,13 @@ class KeyHandler : DeviceKeyHandler {
     constructor(context: Context) : this() {
         audioManager = context.getSystemService(AudioManager::class.java)!!
         notificationManager = context.getSystemService(NotificationManager::class.java)!!
-        vibrator = context.getSystemService(Vibrator::class.java)!!
+
+        // Update to use VibratorManager for compatibility
+        val vibratorManager = context.getSystemService(VibratorManager::class.java)
+        vibrator = vibratorManager?.defaultVibrator ?: context.getSystemService(Vibrator::class.java)!!
 
         packageContext = context.createPackageContext(
-            KeyHandler::class.java.getPackage()!!.name, 0
+            KeyHandler::class.java.packageName, 0
         )
         sharedPreferences = packageContext.getSharedPreferences(
             packageContext.packageName + "_preferences",
@@ -133,7 +137,16 @@ class KeyHandler : DeviceKeyHandler {
                 }
             }
             vibrateIfNeeded(mode)
+            sendNotification(position, mode)
         }
+    }
+
+    private fun sendNotification(position: Int, mode: Int) {
+        val intent = Intent(SLIDER_UPDATE_ACTION).apply {
+            putExtra("position", position)
+            putExtra("mode", mode)
+        }
+        packageContext.sendBroadcast(intent)
     }
 
     override fun onPocketStateChanged(inPocket: Boolean) {
@@ -154,9 +167,11 @@ class KeyHandler : DeviceKeyHandler {
         private const val TAG = "KeyHandler"
 
         // Slider key positions
-        private const val POSITION_TOP = 1
-        private const val POSITION_MIDDLE = 2
-        private const val POSITION_BOTTOM = 3
+        const val POSITION_TOP = 1
+        const val POSITION_MIDDLE = 2
+        const val POSITION_BOTTOM = 3
+
+        const val SLIDER_UPDATE_ACTION = "org.lineageos.settings.device.UPDATE_SLIDER"
 
         // Preference keys
         private const val ALERT_SLIDER_TOP_KEY = "config_top_position"
