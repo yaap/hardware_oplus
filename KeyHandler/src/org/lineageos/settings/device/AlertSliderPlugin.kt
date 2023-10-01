@@ -11,9 +11,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.hardware.display.AmbientDisplayConfiguration
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.os.UserHandle;
 import android.view.View
 import com.android.systemui.plugins.OverlayPlugin
 import com.android.systemui.plugins.annotations.Requires
@@ -23,6 +25,7 @@ import org.lineageos.settings.device.KeyHandler
 class AlertSliderPlugin : OverlayPlugin {
     private lateinit var pluginContext: Context
     private lateinit var handler: NotificationHandler
+    private lateinit var ambientConfig: AmbientDisplayConfiguration
 
     private data class NotificationInfo(
         val position: Int,
@@ -51,6 +54,7 @@ class AlertSliderPlugin : OverlayPlugin {
     override fun onCreate(context: Context, plugin: Context) {
         pluginContext = plugin
         handler = NotificationHandler(plugin)
+        ambientConfig = AmbientDisplayConfiguration(context)
 
         plugin.registerReceiver(updateReceiver, IntentFilter(KeyHandler.SLIDER_UPDATE_ACTION))
     }
@@ -74,6 +78,7 @@ class AlertSliderPlugin : OverlayPlugin {
                     // Show/hide dialog
                     if (value) {
                         handleResetTimeout()
+                        handleDoze()
                         dialog.show()
                     } else {
                         dialog.dismiss()
@@ -111,7 +116,15 @@ class AlertSliderPlugin : OverlayPlugin {
                 handleShow()
                 return
             }
+            handleDoze()
             dialog.setState(info.position, info.mode)
+        }
+
+        private fun handleDoze() {
+            if (!ambientConfig.pulseOnNotificationEnabled(UserHandle.USER_CURRENT))
+                return
+            val intent = Intent("com.android.systemui.doze.pulse")
+            context.sendBroadcastAsUser(intent, UserHandle.CURRENT)
         }
 
         private fun maybeRemake(): Boolean {
@@ -138,7 +151,7 @@ class AlertSliderPlugin : OverlayPlugin {
         private const val MSG_DIALOG_DISMISS = 2
         private const val MSG_DIALOG_RESET = 3
         private const val MSG_DIALOG_UPDATE = 4
-        private const val DIALOG_TIMEOUT = 2000L
+        private const val DIALOG_TIMEOUT = 3000L
 
         // Ringer mode
         private const val NONE = -1
