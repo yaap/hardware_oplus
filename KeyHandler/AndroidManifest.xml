@@ -21,6 +21,7 @@
     <uses-permission android:name="com.android.systemui.permission.PLUGIN" />
 
     <protected-broadcast android:name="org.lineageos.settings.device.UPDATE_SLIDER" />
+    <protected-broadcast android:name="com.android.systemui.doze.pulse" />
 
     <application
         android:icon="@mipmap/ic_launcher"
