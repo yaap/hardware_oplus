@@ -51,6 +51,11 @@ class AlertSliderPlugin : OverlayPlugin {
                         handler.sendEmptyMessage(MSG_DIALOG_SHOW)
                     }
                 }
+                Intent.ACTION_CONFIGURATION_CHANGED -> {
+                    synchronized (dialogLock) {
+                        handler.sendEmptyMessage(MSG_DIALOG_RECREATE)
+                    }
+                }
             }
         }
     }
@@ -61,6 +66,7 @@ class AlertSliderPlugin : OverlayPlugin {
         ambientConfig = AmbientDisplayConfiguration(context)
 
         plugin.registerReceiver(updateReceiver, IntentFilter(KeyHandler.SLIDER_UPDATE_ACTION))
+        plugin.registerReceiver(updateReceiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
     }
 
     override fun onDestroy() {
@@ -100,6 +106,7 @@ class AlertSliderPlugin : OverlayPlugin {
             MSG_DIALOG_DISMISS -> handleDismiss()
             MSG_DIALOG_RESET -> handleResetTimeout()
             MSG_DIALOG_UPDATE -> handleUpdate(msg.obj as NotificationInfo)
+            MSG_DIALOG_RECREATE -> handleRecreate()
             else -> {}
         }
 
@@ -122,7 +129,6 @@ class AlertSliderPlugin : OverlayPlugin {
 
         private fun handleUpdate(info: NotificationInfo) {
             synchronized (dialogLock) {
-                if (maybeRemake()) showing = true
                 handleResetTimeout()
                 handleDoze()
                 dialog.setState(info.position, info.mode)
@@ -136,7 +142,7 @@ class AlertSliderPlugin : OverlayPlugin {
             context.sendBroadcastAsUser(intent, UserHandle.CURRENT)
         }
 
-        private fun maybeRemake(): Boolean {
+        private fun handleRecreate() {
             // Remake if theme changed or rotation
             val uiMode = context.getResources().getConfiguration().uiMode
             val rotation = context.getDisplay().getRotation()
@@ -145,9 +151,7 @@ class AlertSliderPlugin : OverlayPlugin {
                 dialog = AlertSliderDialog(context)
                 currUIMode = uiMode
                 currRotation = rotation
-                return true
             }
-            return false
         }
     }
 
@@ -159,6 +163,7 @@ class AlertSliderPlugin : OverlayPlugin {
         private const val MSG_DIALOG_DISMISS = 2
         private const val MSG_DIALOG_RESET = 3
         private const val MSG_DIALOG_UPDATE = 4
+        private const val MSG_DIALOG_RECREATE = 5
         private const val DIALOG_TIMEOUT = 3000L
 
         // Ringer mode
