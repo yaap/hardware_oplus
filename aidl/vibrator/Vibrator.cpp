@@ -394,6 +394,7 @@ int LedVibratorDevice::on(int32_t timeoutMs) {
     ret |= write_value(LED_DEVICE "/duration", timeoutMs);
     ret |= write_value(LED_DEVICE "/state", "1");
     ret |= write_value(LED_DEVICE "/activate", "1");
+    usleep(100 * 1000);
     ret |= write_value(LED_DEVICE "/activate", "0");
 
     return ret;
@@ -401,11 +402,9 @@ int LedVibratorDevice::on(int32_t timeoutMs) {
 
 int LedVibratorDevice::onWaveform(int waveformIndex) {
     int ret = 0;
-    ret |= write_value(LED_DEVICE "/rtp", "0");
     ret |= write_value(LED_DEVICE "/vmax", "1600");
     ret |= write_value(LED_DEVICE "/waveform_index", waveformIndex);
     ret |= write_value(LED_DEVICE "/brightness", "1");
-    ret |= write_value(LED_DEVICE "/rtp", "0");
     return ret;
 }
 
@@ -489,48 +488,35 @@ ndk::ScopedAStatus Vibrator::perform(Effect effect, EffectStrength es, const std
     if (ledVib.mDetected) {
         switch (effect) {
         case Effect::CLICK:
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             ledVib.write_value(LED_DEVICE "/vmax", "2500");
             ledVib.write_value(LED_DEVICE "/waveform_index", "1");
-            ledVib.write_value(LED_DEVICE "/brightness", "1");
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             break;
         case Effect::DOUBLE_CLICK:
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             ledVib.write_value(LED_DEVICE "/vmax", "2500");
             ledVib.write_value(LED_DEVICE "/waveform_index", "1");
-            ledVib.write_value(LED_DEVICE "/brightness", "1");
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
-            usleep(100 * 1000);
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
-            ledVib.write_value(LED_DEVICE "/vmax", "2500");
-            ledVib.write_value(LED_DEVICE "/waveform_index", "1");
-            ledVib.write_value(LED_DEVICE "/brightness", "1");
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             break;
         case Effect::TICK:
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             ledVib.write_value(LED_DEVICE "/vmax", "1400");
             ledVib.write_value(LED_DEVICE "/waveform_index", "1");
-            ledVib.write_value(LED_DEVICE "/brightness", "1");
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             break;
         case Effect::HEAVY_CLICK:
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             ledVib.write_value(LED_DEVICE "/vmax", "2500");
             ledVib.write_value(LED_DEVICE "/waveform_index", "4");
-            ledVib.write_value(LED_DEVICE "/brightness", "1");
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             break;
         case Effect::TEXTURE_TICK:
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             ledVib.write_value(LED_DEVICE "/vmax", "60");
             ledVib.write_value(LED_DEVICE "/waveform_index", "2");
-            ledVib.write_value(LED_DEVICE "/brightness", "1");
-            ledVib.write_value(LED_DEVICE "/rtp", "0");
             break;
         default:
             return ndk::ScopedAStatus(AStatus_fromExceptionCode(EX_UNSUPPORTED_OPERATION));
+        }
+
+        if (effect == Effect::DOUBLE_CLICK) {
+            ledVib.write_value(LED_DEVICE "/brightness", "1");
+            usleep(100 * 1000);
+            ledVib.write_value(LED_DEVICE "/brightness", "1");
+        } else {
+            ledVib.write_value(LED_DEVICE "/brightness", "1");
         }
 
         // Return magic value for play length so that we won't end up calling on() / off()
