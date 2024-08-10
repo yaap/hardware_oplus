@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-#include <fcntl.h>
+#define LOG_TAG "AntiFlickerService"
+
+#include <android-base/file.h>
+#include <android-base/strings.h>
 #include <livedisplay/oplus/AntiFlicker.h>
-#include <oplus/oplus_display_panel.h>
+
+using ::android::base::ReadFileToString;
+using ::android::base::Trim;
+using ::android::base::WriteStringToFile;
+
+namespace {
+
+constexpr const char* kDcDimmingPath = "/sys/kernel/oplus_display/dimlayer_bl_en";
+
+}  // anonymous namespace
 
 namespace vendor {
 namespace lineage {
@@ -24,16 +36,19 @@ namespace livedisplay {
 namespace V2_1 {
 namespace implementation {
 
-AntiFlicker::AntiFlicker() : mOplusDisplayFd(open("/dev/oplus_display", O_RDWR)) {}
-
 Return<bool> AntiFlicker::isEnabled() {
-    unsigned int value;
-    return ioctl(mOplusDisplayFd, PANEL_IOCTL_GET_DIMLAYER_BL_EN, &value) == 0 && value > 0;
+    std::string tmp;
+    int32_t contents = 0;
+
+    if (ReadFileToString(kDcDimmingPath, &tmp)) {
+        contents = std::stoi(Trim(tmp));
+    }
+
+    return contents > 0;
 }
 
 Return<bool> AntiFlicker::setEnabled(bool enabled) {
-    unsigned int value = enabled;
-    return ioctl(mOplusDisplayFd, PANEL_IOCTL_SET_DIMLAYER_BL_EN, &value) == 0;
+    return WriteStringToFile(std::to_string(enabled), kDcDimmingPath, true);
 }
 
 }  // namespace implementation
