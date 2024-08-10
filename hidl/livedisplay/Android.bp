@@ -13,11 +13,6 @@
 // limitations under the License.
 
 filegroup {
-    name: "vendor.lineage.livedisplay@2.1-oplus-af",
-    srcs: ["AntiFlicker.cpp"],
-}
-
-filegroup {
     name: "vendor.lineage.livedisplay@2.1-oplus-se",
     srcs: ["SunlightEnhancement.cpp"],
 }
