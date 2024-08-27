@@ -173,7 +173,7 @@ class AlertSliderDialog(private var context: Context) : Dialog(context, R.style.
         sTextResMap.get(ringerMode)?.let {
             textView!!.setText(it)
         } ?: {
-            textView!!.setText(R.string.notification_slider_mode_none)
+            textView!!.setText(R.string.alert_slider_mode_normal)
         }
     }
 
@@ -223,11 +223,11 @@ class AlertSliderDialog(private var context: Context) : Dialog(context, R.style.
         )
 
         private val sTextResMap = hashMapOf(
-            KeyHandler.KEY_VALUE_SILENT to R.string.notification_slider_mode_silent,
-            KeyHandler.KEY_VALUE_VIBRATE to R.string.notification_slider_mode_vibrate,
-            KeyHandler.KEY_VALUE_NORMAL to R.string.notification_slider_mode_none,
-            KeyHandler.KEY_VALUE_PRIORTY_ONLY to R.string.notification_slider_mode_priority_only,
-            KeyHandler.KEY_VALUE_TOTAL_SILENCE to R.string.notification_slider_mode_total_silence
+            KeyHandler.KEY_VALUE_SILENT to R.string.alert_slider_mode_silent,
+            KeyHandler.KEY_VALUE_VIBRATE to R.string.alert_slider_mode_vibration,
+            KeyHandler.KEY_VALUE_NORMAL to R.string.alert_slider_mode_normal,
+            KeyHandler.KEY_VALUE_PRIORTY_ONLY to R.string.alert_slider_mode_dnd_priority_only,
+            KeyHandler.KEY_VALUE_TOTAL_SILENCE to R.string.alert_slider_mode_dnd_total_silence
         )
     }
 }

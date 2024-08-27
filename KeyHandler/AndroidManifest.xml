@@ -19,6 +19,7 @@
           package="org.lineageos.settings.device">
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.android.systemui.permission.PLUGIN" />
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS"/>
 
     <protected-broadcast android:name="org.lineageos.settings.device.UPDATE_SLIDER" />
     <protected-broadcast android:name="com.android.systemui.doze.pulse" />
@@ -28,7 +29,8 @@
         android:label="@string/device_settings_app_name"
         android:theme="@style/Theme.SubSettingsBase"
         android:defaultToDeviceProtectedStorage="true"
-        android:directBootAware="true">
+        android:directBootAware="true"
+        android:sharedUserId="android.uid.system">
 
         <provider
             android:name=".ConfigPanelSearchIndexablesProvider"
@@ -64,15 +66,17 @@
         <service
             android:name=".KeyHandler"
             android:permission="KeyHandlerService"
+            android:sharedUserId="android.uid.system"
             android:exported="true" />
-
+        
        <service
-            android:name=".AlertSliderPlugin"
-            android:exported="false">
+            android:name="org.lineageos.settings.device.AlertSliderPlugin"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.android.systemui.action.PLUGIN_OVERLAY" />
             </intent-filter>
         </service>
 
     </application>
+
 </manifest>
