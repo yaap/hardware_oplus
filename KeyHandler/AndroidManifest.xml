@@ -42,7 +42,7 @@
         <activity
             android:name=".ButtonSettingsActivity"
             android:label="@string/button_panel_title"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="org.lineageos.settings.device.ADDITIONAL_BUTTONS_SETTINGS" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -52,6 +52,6 @@
         <service
             android:name=".KeyHandler"
             android:permission="KeyHandlerService"
-            android:exported="false" />
+            android:exported="true" />
     </application>
 </manifest>
