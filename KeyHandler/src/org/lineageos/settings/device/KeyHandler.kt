@@ -170,17 +170,10 @@ class KeyHandler(private val context: Context) : DeviceKeyHandler {
         private const val MUTE_MEDIA_WITH_SILENT = "config_mute_media"
 
         // ZEN constants
-        private const val ZEN_OFFSET = 2
-        private const val ZEN_PRIORITY_ONLY = 3
-        private const val ZEN_TOTAL_SILENCE = 4
-        private const val ZEN_ALARMS_ONLY = 5
-
-        public const val KEY_VALUE_TOTAL_SILENCE = 0
-        public const val KEY_VALUE_SILENT = 1
-        public const val KEY_VALUE_PRIORTY_ONLY = 2
-        public const val KEY_VALUE_VIBRATE = 3
-        public const val KEY_VALUE_NORMAL = 4
-
+        public const val ZEN_OFFSET = 2
+        public const val ZEN_PRIORITY_ONLY = 3
+        public const val ZEN_TOTAL_SILENCE = 4
+        public const val ZEN_ALARMS_ONLY = 5
 
         // Vibration attributes
         private val HARDWARE_FEEDBACK_VIBRATION_ATTRIBUTES =

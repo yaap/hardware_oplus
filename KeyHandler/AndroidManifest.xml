@@ -29,8 +29,7 @@
         android:label="@string/device_settings_app_name"
         android:theme="@style/Theme.SubSettingsBase"
         android:defaultToDeviceProtectedStorage="true"
-        android:directBootAware="true"
-        android:sharedUserId="android.uid.system">
+        android:directBootAware="true">
 
         <provider
             android:name=".ConfigPanelSearchIndexablesProvider"
@@ -66,12 +65,11 @@
         <service
             android:name=".KeyHandler"
             android:permission="KeyHandlerService"
-            android:sharedUserId="android.uid.system"
-            android:exported="true" />
+            android:exported="false" />
         
        <service
-            android:name="org.lineageos.settings.device.AlertSliderPlugin"
-            android:exported="true">
+            android:name=".AlertSliderPlugin"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.android.systemui.action.PLUGIN_OVERLAY" />
             </intent-filter>

@@ -163,71 +163,73 @@ class AlertSliderDialog(private var context: Context) : Dialog(context, R.style.
         animator.start()
     }
 
-    private fun applyOnStart(ringerMode: Int) {
-        sIconResMap.get(ringerMode)?.let {
-            iconView!!.setImageResource(it)
-        } ?: {
-            iconView!!.setImageResource(R.drawable.ic_info)
-        }
-
-        sTextResMap.get(ringerMode)?.let {
-            textView!!.setText(it)
-        } ?: {
-            textView!!.setText(R.string.alert_slider_mode_normal)
-        }
+private fun applyOnStart(ringerMode: Int) {
+    sIconResMap.get(ringerMode)?.let {
+        iconView!!.setImageResource(it)
+    } ?: run {
+        iconView!!.setImageResource(R.drawable.ic_info)
     }
 
-    private fun applyOnEnd(endX: Int, endY: Int, position: Int) {
-        frameView!!.setBackgroundResource(
-            when (rotation) {
-                Surface.ROTATION_90 -> sBackgroundResMap90.get(position)!!
-                Surface.ROTATION_270 -> sBackgroundResMap270.get(position)!!
-                else -> sBackgroundResMap.get(position)!! // Surface.ROTATION_0
-            }
-        )
-        getWindow()?.let {
-            it.attributes = it.attributes.apply {
-                x = endX
-                y = endY
-            }
+    sTextResMap.get(ringerMode)?.let {
+        textView!!.setText(it)
+    } ?: run {
+        textView!!.setText(R.string.alert_slider_mode_none)
+    }
+}
+
+private fun applyOnEnd(endX: Int, endY: Int, position: Int) {
+    frameView!!.setBackgroundResource(
+        when (rotation) {
+            Surface.ROTATION_90 -> sBackgroundResMap90.get(position)!!
+            Surface.ROTATION_270 -> sBackgroundResMap270.get(position)!!
+            else -> sBackgroundResMap.get(position)!! // Surface.ROTATION_0
+        }
+    )
+    getWindow()?.let {
+        it.attributes = it.attributes.apply {
+            x = endX
+            y = endY
         }
     }
+}
 
-    companion object {
-        private const val TAG = "AlertSliderDialog"
+companion object {
+    private const val TAG = "AlertSliderDialog"
 
-        private val sBackgroundResMap = hashMapOf(
-            KeyHandler.POSITION_TOP to R.drawable.alert_slider_top,
-            KeyHandler.POSITION_MIDDLE to R.drawable.alert_slider_middle,
-            KeyHandler.POSITION_BOTTOM to R.drawable.alert_slider_bottom
-        )
+    private val sBackgroundResMap = hashMapOf(
+        KeyHandler.POSITION_TOP to R.drawable.alert_slider_top,
+        KeyHandler.POSITION_MIDDLE to R.drawable.alert_slider_middle,
+        KeyHandler.POSITION_BOTTOM to R.drawable.alert_slider_bottom
+    )
 
-        private val sBackgroundResMap90 = hashMapOf(
-            KeyHandler.POSITION_TOP to R.drawable.alert_slider_top_90,
-            KeyHandler.POSITION_MIDDLE to R.drawable.alert_slider_middle,
-            KeyHandler.POSITION_BOTTOM to R.drawable.alert_slider_bottom_90
-        )
+    private val sBackgroundResMap90 = hashMapOf(
+        KeyHandler.POSITION_TOP to R.drawable.alert_slider_top_90,
+        KeyHandler.POSITION_MIDDLE to R.drawable.alert_slider_middle,
+        KeyHandler.POSITION_BOTTOM to R.drawable.alert_slider_bottom_90
+    )
 
-        private val sBackgroundResMap270 = hashMapOf(
-            KeyHandler.POSITION_TOP to R.drawable.alert_slider_top_270,
-            KeyHandler.POSITION_MIDDLE to R.drawable.alert_slider_middle,
-            KeyHandler.POSITION_BOTTOM to R.drawable.alert_slider_bottom_270
-        )
+    private val sBackgroundResMap270 = hashMapOf(
+        KeyHandler.POSITION_TOP to R.drawable.alert_slider_top_270,
+        KeyHandler.POSITION_MIDDLE to R.drawable.alert_slider_middle,
+        KeyHandler.POSITION_BOTTOM to R.drawable.alert_slider_bottom_270
+    )
 
-        private val sIconResMap = hashMapOf(
-            KeyHandler.KEY_VALUE_SILENT to R.drawable.ic_volume_ringer_mute,
-            KeyHandler.KEY_VALUE_VIBRATE to R.drawable.ic_volume_ringer_vibrate,
-            KeyHandler.KEY_VALUE_NORMAL to R.drawable.ic_volume_ringer,
-            KeyHandler.KEY_VALUE_PRIORTY_ONLY to R.drawable.ic_notifications_alert,
-            KeyHandler.KEY_VALUE_TOTAL_SILENCE to R.drawable.ic_notifications_silence
-        )
+    private val sIconResMap = hashMapOf(
+        AudioManager.RINGER_MODE_SILENT to R.drawable.ic_volume_ringer_mute,
+        AudioManager.RINGER_MODE_VIBRATE to R.drawable.ic_volume_ringer_vibrate,
+        AudioManager.RINGER_MODE_NORMAL to R.drawable.ic_volume_ringer,
+        KeyHandler.ZEN_PRIORITY_ONLY to R.drawable.ic_notifications_alert,
+        KeyHandler.ZEN_TOTAL_SILENCE to R.drawable.ic_notifications_silence,
+        KeyHandler.ZEN_ALARMS_ONLY to R.drawable.ic_alarm
+    )
 
-        private val sTextResMap = hashMapOf(
-            KeyHandler.KEY_VALUE_SILENT to R.string.alert_slider_mode_silent,
-            KeyHandler.KEY_VALUE_VIBRATE to R.string.alert_slider_mode_vibration,
-            KeyHandler.KEY_VALUE_NORMAL to R.string.alert_slider_mode_normal,
-            KeyHandler.KEY_VALUE_PRIORTY_ONLY to R.string.alert_slider_mode_dnd_priority_only,
-            KeyHandler.KEY_VALUE_TOTAL_SILENCE to R.string.alert_slider_mode_dnd_total_silence
-        )
-    }
+    private val sTextResMap = hashMapOf(
+        AudioManager.RINGER_MODE_SILENT to R.string.alert_slider_mode_silent,
+        AudioManager.RINGER_MODE_VIBRATE to R.string.alert_slider_mode_vibration,
+        AudioManager.RINGER_MODE_NORMAL to R.string.alert_slider_mode_normal,
+        KeyHandler.ZEN_PRIORITY_ONLY to R.string.alert_slider_mode_dnd_priority_only,
+        KeyHandler.ZEN_TOTAL_SILENCE to R.string.alert_slider_mode_dnd_total_silence,
+        KeyHandler.ZEN_ALARMS_ONLY to R.string.alert_slider_mode_dnd_alarms_only
+    )
+}
 }
