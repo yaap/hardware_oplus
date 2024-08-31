@@ -11,7 +11,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.Configuration
 import android.hardware.display.AmbientDisplayConfiguration
 import android.os.Handler
 import android.os.Looper
@@ -20,7 +19,6 @@ import android.os.UserHandle
 import android.view.View
 import com.android.systemui.plugins.OverlayPlugin
 import com.android.systemui.plugins.annotations.Requires
-import org.lineageos.settings.device.KeyHandler 
 
 @Requires(target = OverlayPlugin::class, version = OverlayPlugin.VERSION)
 class AlertSliderPlugin : OverlayPlugin {
@@ -34,39 +32,49 @@ class AlertSliderPlugin : OverlayPlugin {
         val mode: Int,
     )
 
-    private val updateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                KeyHandler.SLIDER_UPDATE_ACTION -> {
-                    synchronized (dialogLock) {
-                        val ringer = intent.getIntExtra("mode", NONE)
-                            .takeIf { it != NONE } ?: return
+    private val updateReceiver: BroadcastReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    KeyHandler.SLIDER_UPDATE_ACTION -> {
+                        synchronized(dialogLock) {
+                            val ringer =
+                                intent.getIntExtra("mode", NONE).takeIf { it != NONE } ?: return
 
-                        handler.obtainMessage(
-                            MSG_DIALOG_UPDATE, NotificationInfo(
-                                intent.getIntExtra("position", KeyHandler.POSITION_BOTTOM),
-                                ringer
-                            )
-                        ).sendToTarget()
-                        handler.sendEmptyMessage(MSG_DIALOG_SHOW)
+                            handler
+                                .obtainMessage(
+                                    MSG_DIALOG_UPDATE,
+                                    NotificationInfo(
+                                        intent.getIntExtra("position", KeyHandler.POSITION_BOTTOM),
+                                        ringer
+                                    )
+                                )
+                                .sendToTarget()
+                            handler.sendEmptyMessage(MSG_DIALOG_SHOW)
+                        }
                     }
-                }
-                Intent.ACTION_CONFIGURATION_CHANGED -> {
-                    synchronized (dialogLock) {
-                        handler.sendEmptyMessage(MSG_DIALOG_RECREATE)
+                    Intent.ACTION_CONFIGURATION_CHANGED -> {
+                        synchronized(dialogLock) { handler.sendEmptyMessage(MSG_DIALOG_RECREATE) }
                     }
                 }
             }
         }
-    }
 
     override fun onCreate(context: Context, plugin: Context) {
         pluginContext = plugin
         handler = NotificationHandler(plugin)
         ambientConfig = AmbientDisplayConfiguration(context)
 
-        plugin.registerReceiver(updateReceiver, IntentFilter(KeyHandler.SLIDER_UPDATE_ACTION), Context.RECEIVER_EXPORTED)
-        plugin.registerReceiver(updateReceiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED), Context.RECEIVER_EXPORTED)
+        plugin.registerReceiver(
+            updateReceiver,
+            IntentFilter(KeyHandler.SLIDER_UPDATE_ACTION),
+            Context.RECEIVER_EXPORTED
+        )
+        plugin.registerReceiver(
+            updateReceiver,
+            IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED),
+            Context.RECEIVER_EXPORTED
+        )
     }
 
     override fun onDestroy() {
@@ -75,13 +83,14 @@ class AlertSliderPlugin : OverlayPlugin {
 
     override fun setup(statusBar: View, navBar: View) {}
 
-    private inner class NotificationHandler(private val context: Context) : Handler(Looper.getMainLooper()) {
+    private inner class NotificationHandler(private val context: Context) :
+        Handler(Looper.getMainLooper()) {
         private var dialog = AlertSliderDialog(context)
         private var currUIMode = context.getResources().getConfiguration().uiMode
         private var currRotation = context.getDisplay().getRotation()
         private var showing = false
             set(value) {
-                synchronized (dialogLock) {
+                synchronized(dialogLock) {
                     if (field != value) {
                         // Remove pending messages
                         removeMessages(MSG_DIALOG_SHOW)
@@ -101,14 +110,15 @@ class AlertSliderPlugin : OverlayPlugin {
                 }
             }
 
-        override fun handleMessage(msg: Message) = when (msg.what) {
-            MSG_DIALOG_SHOW -> handleShow()
-            MSG_DIALOG_DISMISS -> handleDismiss()
-            MSG_DIALOG_RESET -> handleResetTimeout()
-            MSG_DIALOG_UPDATE -> handleUpdate(msg.obj as NotificationInfo)
-            MSG_DIALOG_RECREATE -> handleRecreate()
-            else -> {}
-        }
+        override fun handleMessage(msg: Message) =
+            when (msg.what) {
+                MSG_DIALOG_SHOW -> handleShow()
+                MSG_DIALOG_DISMISS -> handleDismiss()
+                MSG_DIALOG_RESET -> handleResetTimeout()
+                MSG_DIALOG_UPDATE -> handleUpdate(msg.obj as NotificationInfo)
+                MSG_DIALOG_RECREATE -> handleRecreate()
+                else -> {}
+            }
 
         private fun handleShow() {
             showing = true
@@ -119,16 +129,17 @@ class AlertSliderPlugin : OverlayPlugin {
         }
 
         private fun handleResetTimeout() {
-            synchronized (dialogLock) {
+            synchronized(dialogLock) {
                 removeMessages(MSG_DIALOG_DISMISS)
                 sendMessageDelayed(
-                    handler.obtainMessage(MSG_DIALOG_DISMISS, MSG_DIALOG_RESET, 0), DIALOG_TIMEOUT
+                    handler.obtainMessage(MSG_DIALOG_DISMISS, MSG_DIALOG_RESET, 0),
+                    DIALOG_TIMEOUT
                 )
             }
         }
 
         private fun handleUpdate(info: NotificationInfo) {
-            synchronized (dialogLock) {
+            synchronized(dialogLock) {
                 handleResetTimeout()
                 handleDoze()
                 dialog.setState(info.position, info.mode)
@@ -136,8 +147,7 @@ class AlertSliderPlugin : OverlayPlugin {
         }
 
         private fun handleDoze() {
-            if (!ambientConfig.pulseOnNotificationEnabled(UserHandle.USER_CURRENT))
-                return
+            if (!ambientConfig.pulseOnNotificationEnabled(UserHandle.USER_CURRENT)) return
             val intent = Intent("com.android.systemui.doze.pulse")
             context.sendBroadcastAsUser(intent, UserHandle.CURRENT)
         }
