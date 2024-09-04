@@ -8,6 +8,7 @@ package org.lineageos.euicc
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PackageInfoFlags
+import android.os.SystemProperties
 import android.util.Log
 
 object EuiccDisabler {
@@ -25,13 +26,13 @@ object EuiccDisabler {
 
     private fun isInstalledAndEnabled(pm: PackageManager, pkgName: String) = runCatching {
         val info = pm.getPackageInfo(pkgName, PackageInfoFlags.of(0))
-        Log.d(TAG, "package $pkgName installed, enabled = ${info.applicationInfo.enabled}")
-        info.applicationInfo.enabled
+        Log.d(TAG, "package $pkgName installed, enabled = ${info.applicationInfo?.enabled}")
+        info.applicationInfo?.enabled ?: false
     }.getOrDefault(false)
 
     fun enableOrDisableEuicc(context: Context) {
         val pm = context.packageManager
-        val disable = EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
+        val disable = SystemProperties.get("ro.com.google.clientidbase").equals("") || EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
         val flag = if (disable) {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         } else {
