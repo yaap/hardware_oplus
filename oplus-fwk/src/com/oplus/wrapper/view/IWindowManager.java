@@ -31,7 +31,6 @@ import android.view.IWindowSession;
 import android.view.IWindowSessionCallback;
 import android.view.InputChannel;
 import android.view.InsetsState;
-import android.view.TaskTransitionSpec;
 import android.view.WindowContentFrameStats;
 import android.view.displayhash.DisplayHash;
 import android.view.displayhash.VerifiedDisplayHash;
