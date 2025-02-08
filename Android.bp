@@ -8,6 +8,7 @@ soong_namespace {
         "hardware/google/interfaces",
         "hardware/google/pixel",
         "hardware/qcom-caf/bootctrl",
+        "vendor/qcom/opensource/commonsys-intf/display",
     ],
 }
 
