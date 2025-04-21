@@ -1,5 +1,4 @@
 allow hal_power_default vendor_latency_device:chr_file rw_file_perms;
-allow hal_power_default proc_libperfmgr_adds:file { read write open getattr };
 
 hal_client_domain(hal_power_default, vendor_hal_oplus_touch)
 allow hal_power_default hal_oplus_touch_aidl_service:service_manager find;

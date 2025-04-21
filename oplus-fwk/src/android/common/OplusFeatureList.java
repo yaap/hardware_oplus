@@ -1,7 +1,11 @@
+/*
+ * Copyright (C) 2024 The LineageOS Project
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package android.common;
 
 public class OplusFeatureList {
-
     public enum OplusIndex {
         StartOplusOsServiceFactory,
         IOplusSystemServerEx,

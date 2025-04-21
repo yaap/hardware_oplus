@@ -1,11 +1,1 @@
-# Face
-rw_dir_file(tee, face_vendor_data_file)
-allow tee face_vendor_data_file:dir { write };
-allow tee face_vendor_data_file:dir { add_name create };
-
-# Fingerprint
 rw_dir_file(tee, vendor_persist_fingerprint_file)
-
-allow tee vendor_gpt_block_device:blk_file read;
-allow tee vendor_xbl_block_device:blk_file read;
-allow tee boot_block_device:blk_file read;

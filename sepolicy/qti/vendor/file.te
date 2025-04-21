@@ -4,11 +4,9 @@ type vendor_proc_tri_state_key, fs_type, proc_type;
 # Camera
 type vendor_camera_update_data_file, file_type, data_file_type;
 type vendor_persist_camera_file, file_type;
-type vendor_proc_camera, fs_type, proc_type;
 
 # Charging
 type vendor_proc_wireless, fs_type, proc_type;
-type vendor_sysfs_wireless, fs_type, sysfs_type;
 
 # Display
 type vendor_proc_display, fs_type, proc_type;
@@ -20,20 +18,11 @@ type vendor_proc_engineer, fs_type, proc_type;
 type vendor_persist_fingerprint_file, file_type;
 type vendor_proc_fingerprint, fs_type, proc_type;
 
-# Flash
-type vendor_proc_flash, fs_type, proc_type;
-
 # Graphics
 type vendor_sysfs_sde_crtc, fs_type, sysfs_type;
 
 # Input
 type proc_bus_input, fs_type, proc_type;
-
-# Media
-type vendor_sysfs_mediacodec, fs_type, sysfs_type;
-
-# Libperfmgr
-type proc_libperfmgr_adds, fs_type, proc_type;
 
 # Performance
 type vendor_proc_oplus_scheduler, fs_type, proc_type;
@@ -42,13 +31,9 @@ type vendor_proc_oplus_scheduler, fs_type, proc_type;
 type vendor_proc_eng_cali_file, fs_type, proc_type;
 type vendor_proc_oplus_als_file, fs_type, proc_type;
 type vendor_sysfs_sensor_fb, fs_type, sysfs_type;
-type vendor_sysfs_sensor_tap, fs_type, sysfs_type;
 
 # TOF
 type vendor_sysfs_tof, fs_type, sysfs_type;
-
-# Torch
-type sysfs_torch, sysfs_type, fs_type;
 
 # Touch
 type oplus_touchdaemon_socket, file_type;

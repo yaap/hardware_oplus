@@ -1,64 +1,13 @@
 Common_CFlags = ["-Wall"]
 Common_CFlags += ["-Werror"]
 
-soong_config_module_type {
-    name: "oplus_lineage_vibrator_hal_cc_defaults",
-    module_type: "cc_defaults",
-    config_namespace: "OPLUS_LINEAGE_VIBRATOR_HAL",
-    value_variables: ["INCLUDE_DIR", "LIGHT_MAG", "MED_MAG", "STRONG_MAG"],
-    bool_variables: ["USE_EFFECT_STREAM"],
-    properties: [
-        "cflags",
-        "cppflags",
-        "include_dirs",
-        "shared_libs",
-    ],
-}
-
-oplus_lineage_vibrator_hal_cc_defaults {
-    name: "vibrator_effect_stream_defaults",
-    soong_config_variables: {
-        USE_EFFECT_STREAM: {
-            cflags: ["-DUSE_EFFECT_STREAM"],
-            shared_libs: ["liboplusvibratoreffect"],
-        },
-        LIGHT_MAG: {
-            cppflags: ["-DLIGHT_MAG=\"%s\""],
-            conditions_default: {
-                cppflags: ["-DLIGHT_MAG=\"0x3fff\""]
-            },
-        },
-        MED_MAG: {
-            cppflags: ["-DMED_MAG=\"%s\""],
-            conditions_default: {
-                cppflags: ["-DMED_MAG=\"0x5fff\""]
-            },
-        },
-        STRONG_MAG: {
-            cppflags: ["-DSTRONG_MAG=\"%s\""],
-            conditions_default: {
-                cppflags: ["-DSTRONG_MAG=\"0x7fff\""]
-            },
-        },
-    },
-}
-
-oplus_lineage_vibrator_hal_cc_defaults {
-    name: "oplus_lineage_vibrator_effect_defaults",
-    soong_config_variables: {
-        INCLUDE_DIR: {
-            include_dirs: ["%s"],
-        },
-    },
-}
-
 cc_library_shared {
     name: "vendor.qti.hardware.vibrator.impl.oplus",
-    defaults: [
-        "vibrator_effect_stream_defaults",
-    ],
     vendor: true,
-    cflags: Common_CFlags,
+    cflags: Common_CFlags + select(soong_config_variable("OPLUS_LINEAGE_VIBRATOR_HAL", "USE_EFFECT_STREAM"), {
+        "true": ["-DUSE_EFFECT_STREAM"],
+        default: [],
+    }),
     srcs: [
         "Vibrator.cpp",
     ],
@@ -68,8 +17,11 @@ cc_library_shared {
         "liblog",
         "libbinder_ndk",
         "android.hardware.vibrator-V1-ndk",
-    ],
-    export_include_dirs: ["include"]
+    ] + select(soong_config_variable("OPLUS_LINEAGE_VIBRATOR_HAL", "USE_EFFECT_STREAM"), {
+        "true": ["liboplusvibratoreffect"],
+        default: [],
+    }),
+    export_include_dirs: ["include"],
 }
 
 cc_binary {

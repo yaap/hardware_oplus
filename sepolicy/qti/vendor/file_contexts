@@ -1,16 +1,14 @@
 # Alert Slider
-/(vendor|system/vendor)/bin/tri-state-key-calibrate    u:object_r:tri-state-key-calibrate_exec:s0
+/vendor/bin/tri-state-key-calibrate    u:object_r:tri-state-key-calibrate_exec:s0
 
 # Camera
 /data/vendor/camera_update(/.*)?                                                u:object_r:vendor_camera_update_data_file:s0
 /mnt/vendor/persist/camera(/.*)?                                                u:object_r:vendor_persist_camera_file:s0
 /mnt/vendor/persist/dual_camera_calibration(/.*)?                               u:object_r:vendor_persist_camera_file:s0
 /(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.cammidasservice-V1-service    u:object_r:hal_oplus_cammidasservice_aidl_exec:s0
-/odm/lib64/libcreatebin\.so                                                     u:object_r:same_process_hal_file:s0
 /vendor/bin/hw/vendor\.oplus\.hardware\.cameraMDM@1\.0-service                  u:object_r:vendor_hal_cameraMDM_default_exec:s0
 /vendor/bin/hw/vendor\.oplus\.hardware\.cameraMDM@2\.0-service                  u:object_r:vendor_hal_cameraMDM_default_exec:s0
 /vendor/lib64/libipebpsstriping\.so                                             u:object_r:same_process_hal_file:s0
-/vendor/lib64/libc++\.so                                                        u:object_r:same_process_hal_file:s0
 
 # Charging
 /vendor/bin/hw/vendor\.lineage\.powershare@1\.0-service\.oplus    u:object_r:hal_lineage_powershare_default_exec:s0
@@ -19,55 +17,33 @@
 /vendor/bin/hw/vendor\.oplus\.hardware\.commondcs-service    u:object_r:hal_oplus_commondcs_aidl_exec:s0
 
 # Display
+/vendor/bin/hw/vendor\.lineage\.livedisplay@2\.1-service\.oplus    u:object_r:hal_lineage_livedisplay_qti_exec:s0
 /dev/oplus_display                                                 u:object_r:graphics_device:s0
-/vendor/lib64/libubwcp\.so                                         u:object_r:same_process_hal_file:s0
-/(odm|vendor/odm)/lib64/libdisplaycolorfeature\.so                 u:object_r:same_process_hal_file:s0
-/vendor/lib64/hw/android.hardware.graphics.mapper@4\.0-impl-qti-display\.so    u:object_r:same_process_hal_file:s0
-
-# Display (Panel Feature)
-/(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.displaypanelfeature-service          u:object_r:hal_displaypanelfeature_exec:s0
 
 # Display (Pixelworks)
 /(odm|vendor/odm)/bin/hw/vendor\.pixelworks\.hardware\.display\.iris-service           u:object_r:hal_graphics_composer_default_exec:s0
 /(odm|vendor/odm)/bin/hw/vendor\.pixelworks\.hardware\.feature\.irisfeature-service    u:object_r:hal_graphics_composer_default_exec:s0
-/(odm|vendor/odm)/bin/hw/vendor\.pixelworks\.hardware\.feature\.irisfeature            u:object_r:hal_graphics_composer_default_exec:s0
-
-# Dolby
-/data/vendor/dolby(/.*)?                                                               u:object_r:vendor_data_file:s0
-/(vendor|system/vendor|odm)/bin/hw/dolbycodec2                                         u:object_r:mediacodec_exec:s0
-/(vendor|system/vendor|odm)/bin/oplusmediaswcodec                                      u:object_r:mediacodec_exec:s0
-/(vendor|system/vendor|odm)/bin/hw/vendor\.dolby\.media\.c2@1\.0-service               u:object_r:mediacodec_exec:s0
-/(vendor|system/vendor|odm)/bin/hw/vendor\.dolby\.hardware\.dms@2\.0-service           u:object_r:hal_dms_default_exec:s0
-/(vendor|system/vendor|odm)/bin/hw/vendor\.dolby_v3_6\.hardware\.dms360@2\.0-service   u:object_r:hal_dms_default_exec:s0
-/(vendor|system/vendor|odm)/bin/hw/vendor\.dolby_sp\.hardware\.dmssp@2\.0-service      u:object_r:hal_dms_default_exec:s0
 
 # Engineering
 /mnt/vendor/persist/engineermode(/.*)?    u:object_r:vendor_persist_engineer_file:s0
-
-# Face
-/data/vendor_de/[0-9]+/faceunlock(/.*)?    u:object_r:face_vendor_data_file:s0
-/(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.biometrics\.face@1\.0-service    u:object_r:hal_face_default_exec:s0
-/vendor/bin/hw/android\.hardware\.biometrics\.face@1\.0-service.face    u:object_r:hal_face_default_exec:s0
 
 # Fingerprint
 /data/vendor/fingerprint(_ori)?(/.*)?                                                            u:object_r:fingerprint_vendor_data_file:s0
 /mnt/vendor/persist/fingerprint(/.*)?                                                            u:object_r:vendor_persist_fingerprint_file:s0
 /(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.biometrics\.fingerprint@2\.1-service(_uff)?    u:object_r:hal_fingerprint_default_exec:s0
-/(vendor|system/vendor)/bin/hw/android\.hardware\.biometrics\.fingerprint@2\.3-service\.oplus    u:object_r:hal_fingerprint_default_exec:s0
+/vendor/bin/hw/android\.hardware\.biometrics\.fingerprint@2\.3-service\.oplus                    u:object_r:hal_fingerprint_default_exec:s0
 /dev/fingerprint_dev                                                                             u:object_r:fingerprint_device:s0
 /dev/goodix_fp                                                                                   u:object_r:fingerprint_device:s0
 /dev/jiiov_fp                                                                                    u:object_r:fingerprint_device:s0
-
-# Graphics
-/vendor/lib64/libllvm-qgl\.so            u:object_r:same_process_hal_file:s0
+/dev/silead_fp                                                                                   u:object_r:fingerprint_device:s0
 
 # Init
 /(odm|vendor/odm)/bin/init\.oplus\.sh          u:object_r:vendor_qti_init_shell_exec:s0
 /(odm|vendor/odm)/bin/init\.oplus\.wifi\.sh    u:object_r:vendor_qti_init_shell_exec:s0
 
 # IR
-/(odm|vendor/odm)/bin/hw/android\.hardware\.ir\-service\.oplus    u:object_r:hal_ir_default_exec:s0
-/dev/oplus_consumer_ir                                            u:object_r:oplus_consumer_ir_device:s0
+/dev/oplus_consumer_ir                                 u:object_r:oplus_consumer_ir_device:s0
+/vendor/bin/hw/android\.hardware\.ir-service\.oplus    u:object_r:hal_ir_default_exec:s0
 
 # Logo
 /dev/block/platform/soc/1d84000\.ufshc/by-name/logo_[ab]    u:object_r:vendor_custom_ab_block_device:s0
@@ -81,16 +57,8 @@
 /dev/block/platform/soc/1d84000\.ufshc/by-name/mdmddr             u:object_r:vendor_efs_boot_dev:s0
 /dev/block/platform/soc/4804000\.ufshc/by-name/mdm1oemnvbktmp     u:object_r:vendor_modem_efs_partition_device:s0
 
-# Media
-/sys/devices/soc0/subset_parts          u:object_r:vendor_sysfs_mediacodec:s0
-
 # NFC
-/(odm|vendor/odm)/bin/hw/vendor\.qti\.esepowermanager@1\.1-service          u:object_r:vendor_hal_esepowermanager_qti_exec:s0
-/(odm|vendor/odm)/bin/hw/vendor\.qti\.secure_element@1\.2-service           u:object_r:hal_secure_element_default_exec:s0
-/dev/pn553                                                                  u:object_r:nfc_device:s0
-
-# OCCE
-/odm/bin/occe_create                                                        u:object_r:occe_create_exec:s0
+/dev/pn553    u:object_r:nfc_device:s0
 
 # OSENSE
 /vendor/bin/hw/vendor\.oplus\.hardware\.osense\.client-service    u:object_r:hal_oplus_osense_aidl_exec:s0
@@ -114,22 +82,23 @@
 /(odm|vendor/odm)/bin/hw/vendor.oplus.hardware.stability.oplus_project-V1-service    u:object_r:hal_oplus_project_aidl_exec:s0
 
 # RMT
-/dev/block/platform/soc/1d84000\.ufshc/by-name/oem_dycnvbk           u:object_r:vendor_modem_efs_partition_device:s0
-/dev/block/platform/soc/1d84000\.ufshc/by-name/oem_stanvbk           u:object_r:vendor_modem_efs_partition_device:s0
-/dev/block/platform/soc/1d84000\.ufshc/by-name/oplusdycnvbk          u:object_r:vendor_modem_efs_partition_device:s0
-/dev/block/platform/soc/1d84000\.ufshc/by-name/oplusstanvbk_[ab]     u:object_r:vendor_modem_efs_partition_device:s0
-/dev/block/platform/soc/4804000\.ufshc/by-name/oplusdycnvbk          u:object_r:vendor_modem_efs_partition_device:s0
-/dev/block/platform/soc/4804000\.ufshc/by-name/oplusstanvbk_[ab]     u:object_r:vendor_modem_efs_partition_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/oem_dycnvbk          u:object_r:vendor_modem_efs_partition_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/oem_stanvbk          u:object_r:vendor_modem_efs_partition_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/oplusdycnvbk         u:object_r:vendor_modem_efs_partition_device:s0
+/dev/block/platform/soc/1d84000\.ufshc/by-name/oplusstanvbk_[ab]    u:object_r:vendor_modem_efs_partition_device:s0
+/dev/block/platform/soc/4804000\.ufshc/by-name/oplusdycnvbk         u:object_r:vendor_modem_efs_partition_device:s0
+/dev/block/platform/soc/4804000\.ufshc/by-name/oplusstanvbk_[ab]    u:object_r:vendor_modem_efs_partition_device:s0
 
 # Reserve
 /dev/block/platform/soc/1d84000\.ufshc/by-name/oplusreserve[1-5]    u:object_r:vendor_reserve_partition:s0
 /dev/block/platform/soc/4804000\.ufshc/by-name/oplusreserve[1-5]    u:object_r:vendor_reserve_partition:s0
 
+# Secure Element
+/(odm|vendor/odm)/bin/hw/vendor\.qti\.secure_element@1\.2-service    u:object_r:hal_secure_element_default_exec:s0
+
 # Sensors
 /(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.oplusSensor@1\.0-service    u:object_r:vendor_hal_oplusSensor_default_exec:s0
-/(vendor|system/vendor)/bin/hw/android\.hardware\.sensors@2\.1-service\.oplus-multihal    u:object_r:hal_sensors_default_exec:s0
 /(odm|vendor/odm)/bin/oplus_sensor_fb                                         u:object_r:vendor_sensors_exec:s0
-/vendor/bin/hw/android\.hardware\.sensors-service\.oplus-multihal             u:object_r:hal_sensors_default_exec:s0
 /dev/ssc_interactive                                                          u:object_r:ssc_interactive_device:s0
 
 # Spunvm
@@ -144,38 +113,34 @@
 /dev/stmvl53l1_ranging                      u:object_r:vendor_tof_device:s0
 
 # Touch
-/(odm|vendor/odm)/bin/hw/vendor-oplus-hardware-touch-V1-service              u:object_r:hal_oplus_touch_aidl_exec:s0
-/(odm|vendor/odm)/bin/hw/vendor-oplus-hardware-touch-V2-service              u:object_r:hal_oplus_touch_aidl_exec:s0
-/(odm|vendor/odm)/bin/touchDaemon                                            u:object_r:hal_oplus_touchdaemon_exec:s0
-/(vendor|system/vendor)/bin/hw/vendor\.lineage\.touch@1\.0-service\.oplus    u:object_r:hal_lineage_touch_default_exec:s0
-/data/vendor/touch(/.*)?                                                     u:object_r:vendor_persist_oplus_touch_file:s0
-/data/vendor/touchconfig(/.*)?                                               u:object_r:vendor_persist_oplus_touch_file:s0
-/dev/socket/hidl2touchdaemon_client                                          u:object_r:oplus_touchdaemon_socket:s0
-/dev/socket/hidl2touchdaemon_server                                          u:object_r:oplus_touchdaemon_socket:s0
-/dev/tcm_hbp0                                                                u:object_r:oplus_touchdaemon_device:s0
-/dev/tcm1                                                                    u:object_r:oplus_touchdaemon_device:s0
-/dev/tp_misc(/.*)?                                                           u:object_r:oplus_touchdaemon_device:s0
-/dev/tp_misc1                                                                u:object_r:oplus_touchdaemon_device:s0
+/(odm|vendor/odm)/bin/hw/vendor-oplus-hardware-touch-V1-service    u:object_r:hal_oplus_touch_aidl_exec:s0
+/(odm|vendor/odm)/bin/hw/vendor-oplus-hardware-touch-V2-service    u:object_r:hal_oplus_touch_aidl_exec:s0
+/(odm|vendor/odm)/bin/touchDaemon                                  u:object_r:hal_oplus_touchdaemon_exec:s0
+/vendor/bin/hw/vendor\.lineage\.touch@1\.0-service\.oplus          u:object_r:hal_lineage_touch_default_exec:s0
+/data/vendor/touch(/.*)?                                           u:object_r:vendor_persist_oplus_touch_file:s0
+/data/vendor/touchconfig(/.*)?                                     u:object_r:vendor_persist_oplus_touch_file:s0
+/dev/socket/hidl2touchdaemon_client                                u:object_r:oplus_touchdaemon_socket:s0
+/dev/socket/hidl2touchdaemon_server                                u:object_r:oplus_touchdaemon_socket:s0
+/dev/tcm_hbp0                                                      u:object_r:oplus_touchdaemon_device:s0
+/dev/tcm1                                                          u:object_r:oplus_touchdaemon_device:s0
+/dev/tp_misc(/.*)?                                                 u:object_r:oplus_touchdaemon_device:s0
+/dev/tp_misc1                                                      u:object_r:oplus_touchdaemon_device:s0
 
 # Ultrasound
 /dev/audio_ultrasound     u:object_r:ultrasound_device:s0
 /dev/sensor_ultrasound    u:object_r:ultrasound_device:s0
 
 # URCC
-/(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.urcc-service               u:object_r:hal_urcc_exec:s0
+/(odm|vendor/odm)/bin/hw/vendor\.oplus\.hardware\.urcc-service    u:object_r:hal_oplus_urcc_aidl_exec:s0
 
 # Vibrator
 /dev/awinic_haptic                                                    u:object_r:aac_richtap_device:s0
-/(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator\.service\.oplus-richtap    u:object_r:hal_vibrator_default_exec:s0
-/(vendor|system/vendor)/bin/hw/vendor\.qti\.hardware\.vibrator\.service\.oplus        u:object_r:hal_vibrator_default_exec:s0
+/vendor/bin/hw/android\.hardware\.vibrator\.service\.oplus-richtap    u:object_r:hal_vibrator_default_exec:s0
+/vendor/bin/hw/vendor\.qti\.hardware\.vibrator\.service\.oplus        u:object_r:hal_vibrator_default_exec:s0
 
 # Widevine
-/(odm|vendor/odm)/bin/hw/android\.hardware\.drm@1\.[0-4]+-service\.widevine    u:object_r:vendor_hal_drm_widevine_exec:s0
+/vendor/bin/wvmkiller    u:object_r:vendor_wvmkiller_exec:s0
 
 # Wlchgmonitor
 /(odm|vendor/odm)/bin/wlchgmonitor    u:object_r:wlchgmonitor_exec:s0
 /dev/wlchg                            u:object_r:wlchg_device:s0
-
-# Wlschgd
-/(odm|vendor/odm)/bin/hw/wlschgd      u:object_r:wlschgd_exec:s0
-/dev/wls_dev                          u:object_r:wlschgd_device:s0

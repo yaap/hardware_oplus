@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2024 The LineageOS Project
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.android.internal.telephony;
 
 import com.oplus.content.OplusFeatureConfigManager;

@@ -1,9 +1,0 @@
-type hal_urcc, domain;
-type hal_urcc_exec, exec_type, vendor_file_type, file_type;
-set_prop(hal_urcc, vendor_oplus_urcc_prop)
-vndbinder_use(hal_urcc)
-
-allow hal_urcc self:capability ipc_lock;
-allow hal_urcc servicemanager:binder call;
-
-init_daemon_domain(hal_urcc)

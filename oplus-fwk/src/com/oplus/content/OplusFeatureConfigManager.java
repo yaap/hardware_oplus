@@ -1,34 +1,26 @@
+/*
+ * Copyright (C) 2024 The LineageOS Project
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.oplus.content;
 
-import android.os.SystemProperties;
 import android.text.TextUtils;
 
 import java.util.List;
 
 public class OplusFeatureConfigManager {
-
-    public static OplusFeatureConfigManager sOplusFeatureConfigManager = null;
+    public static OplusFeatureConfigManager sInstance = null;
 
     public static OplusFeatureConfigManager getInstance() {
-        if (sOplusFeatureConfigManager == null) {
-            sOplusFeatureConfigManager = new OplusFeatureConfigManager();
+        if (sInstance == null) {
+            sInstance = new OplusFeatureConfigManager();
         }
-        return sOplusFeatureConfigManager;
+        return sInstance;
     }
 
-    public boolean hasFeature(String name) {
-        if ("oplus.software.vibrator_lmvibrator".equals(name)) {
-            // OnePlus 7/8 series use old OnePlus base camera. Don't let this feature break haptic feedback.
-            if (useOnePlusBaseCamera()) {
-                return false;
-            }
-            return true;
-        }
+    public boolean hasFeature(String featureName) {
         return false;
-    }
-
-    private static boolean useOnePlusBaseCamera() {
-        return !TextUtils.isEmpty(SystemProperties.get("ro.oplus.version.base"));
     }
 
     public interface OnFeatureObserver {

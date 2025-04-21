@@ -1,6 +1,0 @@
-# Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause-Clear
-
-type vendor_qccvendor, domain;
-
-type vendor_qccvendor_exec, file_type, vendor_file_type, exec_type;

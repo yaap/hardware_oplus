@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2021 The LineageOS Project
+ * Copyright (C) 2021-2024 The LineageOS Project
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.lineageos.euicc
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PackageInfoFlags
-import android.os.SystemProperties
+import android.content.pm.PackageManager.ApplicationInfoFlags
 import android.util.Log
 
 object EuiccDisabler {
@@ -24,15 +24,20 @@ object EuiccDisabler {
         "com.google.android.ims",
     )
 
+    private fun isInstalled(pm: PackageManager, pkgName: String) = runCatching {
+        val info = pm.getApplicationInfo(pkgName, ApplicationInfoFlags.of(0))
+        info.flags and ApplicationInfo.FLAG_INSTALLED != 0
+    }.getOrDefault(false)
+
     private fun isInstalledAndEnabled(pm: PackageManager, pkgName: String) = runCatching {
-        val info = pm.getPackageInfo(pkgName, PackageInfoFlags.of(0))
-        Log.d(TAG, "package $pkgName installed, enabled = ${info.applicationInfo?.enabled}")
-        info.applicationInfo?.enabled ?: false
+        val info = pm.getApplicationInfo(pkgName, ApplicationInfoFlags.of(0))
+        Log.d(TAG, "package $pkgName installed, enabled = ${info.enabled}")
+        info.enabled
     }.getOrDefault(false)
 
     fun enableOrDisableEuicc(context: Context) {
         val pm = context.packageManager
-        val disable = SystemProperties.get("ro.com.google.clientidbase").equals("") || EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
+        val disable = EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
         val flag = if (disable) {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         } else {
@@ -40,7 +45,9 @@ object EuiccDisabler {
         }
 
         for (pkg in EUICC_PACKAGES) {
-            pm.setApplicationEnabledSetting(pkg, flag, 0)
+            if (isInstalled(pm, pkg)) {
+                pm.setApplicationEnabledSetting(pkg, flag, 0)
+            }
         }
     }
 }

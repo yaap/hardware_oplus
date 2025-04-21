@@ -1,6 +1,3 @@
-# Face
-vendor_internal_prop(vendor_face_prop)
-
 # Fingerprint
 vendor_internal_prop(vendor_fingerprint_prop)
 
@@ -15,3 +12,6 @@ vendor_internal_prop(vendor_oplus_touch_prop)
 
 # URCC
 vendor_internal_prop(vendor_oplus_urcc_prop)
+
+# Widevine
+vendor_internal_prop(vendor_wvmkiller_prop)

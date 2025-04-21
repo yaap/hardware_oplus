@@ -11,15 +11,12 @@ vendor.oppo.camera.            u:object_r:vendor_camera_prop:s0
 # Display
 vendor.dps.dump.composerpid    u:object_r:vendor_display_prop:s0
 
-# Face
-persist.vendor.oplus.face.save.dump    u:object_r:vendor_face_prop:s0
-persist.vendor.oplus.face.sdk.version    u:object_r:vendor_face_prop:s0
-persist.vendor.face.updateflag    u:object_r:vendor_face_prop:s0
-
 # Fingerprint
 persist.vendor.fingerprint.                    u:object_r:vendor_fingerprint_prop:s0
 persist.vendor.side.fp.near.feature.support    u:object_r:vendor_fingerprint_prop:s0
+persist.vendor.silead_newalgo.                 u:object_r:vendor_fingerprint_prop:s0
 vendor.fingerprint.                            u:object_r:vendor_fingerprint_prop:s0
+vendor.silead.                                 u:object_r:vendor_fingerprint_prop:s0
 
 # Media
 vendor.oplus.media.vpp.osie_sr.    u:object_r:vendor_video_prop:s0
@@ -34,7 +31,6 @@ vendor.oplus.nfc.fw.version    u:object_r:vendor_nfc_nq_prop:s0
 persist.vendor.oplus.radio.    u:object_r:vendor_radio_prop:s0
 ro.vendor.oplus.radio.         u:object_r:vendor_radio_prop:s0
 vendor.oplus.radio.            u:object_r:vendor_radio_prop:s0
-odm.ril.radio.status.          u:object_r:vendor_radio_prop:s0
 
 # RIL
 vendor.gsm.phoneserial    u:object_r:vendor_nw_exported_system_prop:s0
@@ -47,3 +43,6 @@ vendor.touchdaemon.          u:object_r:vendor_oplus_touch_prop:s0
 
 # URCC
 vendor.oplus.urcc.started    u:object_r:vendor_oplus_urcc_prop:s0
+
+# Widevine
+vendor.wvm.disable_l1    u:object_r:vendor_wvmkiller_prop:s0

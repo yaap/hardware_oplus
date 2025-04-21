@@ -1,7 +1,0 @@
-type occe_create, domain;
-type occe_create_exec, exec_type, vendor_file_type, file_type;
-
-allow occe_create hwservicemanager_prop:file { read open getattr map };
-allow occe_create tmpfs:dir search;
-
-init_daemon_domain(occe_create)

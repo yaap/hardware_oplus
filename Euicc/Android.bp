@@ -8,12 +8,11 @@ android_app {
     name: "OplusEuicc",
 
     srcs: ["src/**/*.kt"],
-    resource_dirs: ["res"],
 
-    system_ext_specific: true,
+    sdk_version: "current",
+    product_specific: true,
     certificate: "platform",
     privileged: true,
-    platform_apis: true,
 
     optimize: {
         proguard_flags_files: ["proguard.flags"],
@@ -25,17 +24,17 @@ android_app {
 }
 
 prebuilt_etc {
-    sub_dir: "permissions",
     name: "org.lineageos.euicc.xml",
+    relative_install_path: "permissions",
     filename: "org.lineageos.euicc.xml",
     src: "org.lineageos.euicc.xml",
-    system_ext_specific: true,
+    product_specific: true,
 }
 
 prebuilt_etc {
-    sub_dir: "sysconfig",
     name: "hidden-api-whitelist-org.lineageos.euicc.xml",
+    relative_install_path: "sysconfig",
     filename: "hidden-api-whitelist-org.lineageos.euicc.xml",
     src: "hidden-api-whitelist-org.lineageos.euicc.xml",
-    system_ext_specific: true,
+    product_specific: true,
 }

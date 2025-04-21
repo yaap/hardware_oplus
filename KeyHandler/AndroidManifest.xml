@@ -18,11 +18,6 @@
           android:sharedUserId="android.uid.system"
           package="org.lineageos.settings.device">
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="com.android.systemui.permission.PLUGIN" />
-    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS"/>
-
-    <protected-broadcast android:name="org.lineageos.settings.device.UPDATE_SLIDER" />
-    <protected-broadcast android:name="com.android.systemui.doze.pulse" />
 
     <application
         android:icon="@mipmap/ic_launcher"
@@ -46,35 +41,17 @@
         <!-- Additional button settings (Button settings) -->
         <activity
             android:name=".ButtonSettingsActivity"
-            android:label="@string/alert_slider_category_title"
-            android:exported="true">
+            android:label="@string/button_panel_title"
+            android:exported="false">
             <intent-filter>
-                <action android:name="com.android.settings.action.IA_SETTINGS" />
+                <action android:name="org.lineageos.settings.device.ADDITIONAL_BUTTONS_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <meta-data
-                android:name="com.android.settings.summary"
-                android:resource="@string/alert_slider_summary" />
-            <meta-data
-                android:name="com.android.settings.icon"
-                android:resource="@drawable/ic_alter_slider" />
-            <meta-data
-                android:name="com.android.settings.category"
-                android:value="com.android.settings.category.ia.system" />
         </activity>
 
         <service
             android:name=".KeyHandler"
             android:permission="KeyHandlerService"
             android:exported="false" />
-        
-       <service
-            android:name=".AlertSliderPlugin"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.android.systemui.action.PLUGIN_OVERLAY" />
-            </intent-filter>
-        </service>
-
     </application>
-
 </manifest>

@@ -24,6 +24,3 @@ type aac_richtap_device, dev_type;
 
 # Wlchgmonitor
 type wlchg_device, dev_type;
-
-# Wlschgd
-type wlschgd_device, dev_type;

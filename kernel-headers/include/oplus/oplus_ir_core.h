@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The LineageOS Project
+ * Copyright (C) 2025 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #define IR_SEND_PATTERN _IO(IR_IOCTL_GROUP, 0x02)
 
 struct pattern_params {
-	int32_t carrier_freq;
-	uint32_t size;
-	uint32_t pattern[];
+    int32_t carrier_freq;
+    uint32_t size;
+    uint32_t pattern[];
 };

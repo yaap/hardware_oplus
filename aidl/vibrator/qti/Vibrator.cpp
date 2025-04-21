@@ -38,8 +38,6 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <thread>
-#include <string>
-#include <cstdint>
 
 #include "include/Vibrator.h"
 #ifdef USE_EFFECT_STREAM
@@ -51,6 +49,9 @@ namespace android {
 namespace hardware {
 namespace vibrator {
 
+#define STRONG_MAGNITUDE        0x7fff
+#define MEDIUM_MAGNITUDE        0x5fff
+#define LIGHT_MAGNITUDE         0x3fff
 #define INVALID_VALUE           -1
 #define CUSTOM_DATA_LEN         3
 #define NAME_BUF_SIZE           32
@@ -66,15 +67,10 @@ namespace vibrator {
 #define MSM_CPU_CAPE            530
 #define APQ_CPU_CAPE            531
 #define MSM_CPU_KALAMA          519
-#define MSM_CPU_PINEAPPLE       557
 
 #define test_bit(bit, array)    ((array)[(bit)/8] & (1<<((bit)%8)))
 
 #define LED_DEVICE "/sys/class/leds/vibrator"
-
-int16_t light_mag = static_cast<int16_t>(std::stoi(LIGHT_MAG, nullptr, 16));
-int16_t med_mag = static_cast<int16_t>(std::stoi(MED_MAG, nullptr, 16));
-int16_t strong_mag = static_cast<int16_t>(std::stoi(STRONG_MAG, nullptr, 16));
 
 InputFFDevice::InputFFDevice()
 {
@@ -158,7 +154,6 @@ InputFFDevice::InputFFDevice()
             case MSM_CPU_TARO:
             case MSM_CPU_YUPIK:
             case MSM_CPU_KALAMA:
-            case MSM_CPU_PINEAPPLE:
                 mSupportExternalControl = true;
                 break;
             default:
@@ -301,8 +296,8 @@ int InputFFDevice::setAmplitude(uint8_t amplitude) {
     if (mVibraFd == INVALID_VALUE)
         return 0;
 
-    tmp = amplitude * (strong_mag - light_mag) / 255;
-    tmp += light_mag;
+    tmp = amplitude * (STRONG_MAGNITUDE - LIGHT_MAGNITUDE) / 255;
+    tmp += LIGHT_MAGNITUDE;
     ie.type = EV_FF;
     ie.code = FF_GAIN;
     ie.value = tmp;
@@ -320,13 +315,13 @@ int InputFFDevice::setAmplitude(uint8_t amplitude) {
 int InputFFDevice::playEffect(int effectId, EffectStrength es, long *playLengthMs) {
     switch (es) {
     case EffectStrength::LIGHT:
-        mCurrMagnitude = light_mag;
+        mCurrMagnitude = LIGHT_MAGNITUDE;
         break;
     case EffectStrength::MEDIUM:
-        mCurrMagnitude = med_mag;
+        mCurrMagnitude = MEDIUM_MAGNITUDE;
         break;
     case EffectStrength::STRONG:
-        mCurrMagnitude = strong_mag;
+        mCurrMagnitude = STRONG_MAGNITUDE;
         break;
     default:
         return -1;

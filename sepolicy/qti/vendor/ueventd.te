@@ -1,1 +1,1 @@
-rw_dir_file(ueventd, vendor_persist_display_file)
+allow ueventd vendor_persist_display_file:dir search;
