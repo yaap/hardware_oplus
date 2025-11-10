@@ -1,6 +1,5 @@
 //
-// Copyright (C) 2022-2024 The LineageOS Project
-//
+// SPDX-FileCopyrightText: 2022-2025 The LineageOS Project
 // SPDX-License-Identifier: Apache-2.0
 //
 cc_library_shared {
@@ -35,11 +34,5 @@ cc_library_shared {
         "true": ["-DUSES_DOUBLE_TAP_SENSOR"],
         default: [],
     }),
-    vendor: true,
-}
-
-cc_library_shared {
-    name: "sensors.ssc_custom_flag",
-    srcs: ["SensorsSscCustomFlag.cpp"],
     vendor: true,
 }
