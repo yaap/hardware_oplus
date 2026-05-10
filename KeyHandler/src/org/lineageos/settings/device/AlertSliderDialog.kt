@@ -12,6 +12,7 @@ import android.animation.Animator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.app.Dialog
+import android.content.res.ColorStateList
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -28,12 +29,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 /** View with some logging to show that its being run. */
-class AlertSliderDialog(private var context: Context) :
-    Dialog(context, R.style.alert_slider_theme) {
-    private val dialogView by lazy { findViewById<LinearLayout>(R.id.alert_slider_dialog) }
-    private val frameView by lazy { findViewById<ViewGroup>(R.id.alert_slider_view) }
-    private val iconView by lazy { findViewById<ImageView>(R.id.alert_slider_icon) }
-    private val textView by lazy { findViewById<TextView>(R.id.alert_slider_text) }
+class AlertSliderDialog(
+    private val context: Context,
+    private val sysuiContext: Context
+) : Dialog(context, R.style.alert_slider_theme) {
+    private val dialogView by lazy { requireViewById<LinearLayout>(R.id.alert_slider_dialog) }
+    private val frameView by lazy { requireViewById<ViewGroup>(R.id.alert_slider_view) }
+    private val iconView by lazy { requireViewById<ImageView>(R.id.alert_slider_icon) }
+    private val textView by lazy { requireViewById<TextView>(R.id.alert_slider_text) }
 
     private val rotation: Int = context.getDisplay().getRotation()
     private val isLand: Boolean = rotation != Surface.ROTATION_0
@@ -77,7 +80,7 @@ class AlertSliderDialog(private var context: Context) :
         val fraction = context.resources.getFraction(R.fraction.alert_slider_dialog_y, 1, 1)
         val widthPixels = context.resources.displayMetrics.widthPixels
         val heightPixels = context.resources.displayMetrics.heightPixels
-        val pads = dialogView!!.paddingTop * 2 // equal paddings in all 4 directions
+        val pads = dialogView.paddingTop * 2 // equal paddings in all 4 directions
         length =
             if (isLand) context.resources.getDimension(R.dimen.alert_slider_dialog_width).toInt()
             else context.resources.getDimension(R.dimen.alert_slider_dialog_height).toInt()
@@ -113,6 +116,32 @@ class AlertSliderDialog(private var context: Context) :
                     y = yPos
                 }
         }
+
+        // theming
+        val currentUiMode = sysuiContext.resources.configuration.uiMode
+        val isDark =
+            (currentUiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        val bgResId =
+            if (isDark) {
+                android.R.color.system_neutral1_800
+            } else {
+                android.R.color.system_neutral1_100
+            }
+
+        val accentResId =
+            if (isDark) {
+                android.R.color.system_accent1_100
+            } else {
+                android.R.color.system_accent1_500
+            }
+
+        val bgColor = sysuiContext.getColor(bgResId)
+        val accentColor = sysuiContext.getColor(accentResId)
+
+        frameView.backgroundTintList = ColorStateList.valueOf(bgColor)
+        iconView.imageTintList = ColorStateList.valueOf(accentColor)
     }
 
     @Synchronized
@@ -181,16 +210,16 @@ class AlertSliderDialog(private var context: Context) :
     }
 
     private fun applyOnStart(ringerMode: Int) {
-        sIconResMap.get(ringerMode)?.let { iconView!!.setImageResource(it) }
-            ?: run { iconView!!.setImageResource(R.drawable.ic_info) }
+        sIconResMap.get(ringerMode)?.let { iconView.setImageResource(it) }
+            ?: run { iconView.setImageResource(R.drawable.ic_info) }
 
-        sTextResMap.get(ringerMode)?.let { textView!!.setText(it) }
-            ?: run { textView!!.setText(R.string.alert_slider_mode_normal) }
+        sTextResMap.get(ringerMode)?.let { textView.setText(it) }
+            ?: run { textView.setText(R.string.alert_slider_mode_normal) }
     }
 
     private fun applyOnEnd(endX: Int, endY: Int, position: Int) {
         if (isLeft) {
-            frameView!!.setBackgroundResource(
+            frameView.setBackgroundResource(
                 when (rotation) {
                     Surface.ROTATION_90 -> sBackgroundResMapLeft90.get(position)!!
                     Surface.ROTATION_270 -> sBackgroundResMapLeft270.get(position)!!
@@ -198,7 +227,7 @@ class AlertSliderDialog(private var context: Context) :
                 }
             )
         } else {
-            frameView!!.setBackgroundResource(
+            frameView.setBackgroundResource(
                 when (rotation) {
                     Surface.ROTATION_90 -> sBackgroundResMap90.get(position)!!
                     Surface.ROTATION_270 -> sBackgroundResMap270.get(position)!!

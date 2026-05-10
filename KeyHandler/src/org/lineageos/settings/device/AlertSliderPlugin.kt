@@ -67,7 +67,7 @@ class AlertSliderPlugin : OverlayPlugin {
 
     override fun onCreate(context: Context, plugin: Context) {
         pluginContext = plugin
-        handler = NotificationHandler(plugin)
+        handler = NotificationHandler(plugin, context)
         ambientConfig = AmbientDisplayConfiguration(context)
 
         val filter = IntentFilter().apply {
@@ -87,10 +87,13 @@ class AlertSliderPlugin : OverlayPlugin {
 
     override fun setup(statusBar: View?, navBar: View?) {}
 
-    private inner class NotificationHandler(var context: Context) : 
-        Handler(Looper.getMainLooper()) {
-        private var dialog = AlertSliderDialog(context)
+    private inner class NotificationHandler(
+        var context: Context,
+        private var sysuiContext: Context,
+    ) : Handler(Looper.getMainLooper()) {
+        private var dialog = AlertSliderDialog(context, sysuiContext)
         private var currUIMode = context.resources.configuration.uiMode
+        private var accentColor = sysuiContext.getColor(android.R.color.system_accent1_100)
         private var currRotation = context.display.rotation 
         private var showing = false
             set(value) {
@@ -161,12 +164,14 @@ class AlertSliderPlugin : OverlayPlugin {
             // Remake if theme changed or rotation
             val uiMode = context.resources.configuration.uiMode
             val rotation = context.display.rotation
-            val themeChanged = uiMode != currUIMode
+            val color = sysuiContext.getColor(android.R.color.system_accent1_100)
+            val themeChanged = uiMode != currUIMode || color != accentColor
             val rotationChanged = rotation != currRotation
             if (themeChanged || rotationChanged) {
                 showing = false
-                dialog = AlertSliderDialog(context)
+                dialog = AlertSliderDialog(context, sysuiContext)
                 currUIMode = uiMode
+                accentColor = color
                 currRotation = rotation
             }
         }
