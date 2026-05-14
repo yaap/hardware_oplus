@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.ApplicationInfoFlags
+import android.os.SystemProperties
 import android.util.Log
 
 object EuiccDisabler {
@@ -37,7 +38,7 @@ object EuiccDisabler {
 
     fun enableOrDisableEuicc(context: Context) {
         val pm = context.packageManager
-        val disable = EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
+        val disable = SystemProperties.get("ro.com.google.clientidbase").equals("") || EUICC_DEPENDENCIES.any { !isInstalledAndEnabled(pm, it) }
         val flag = if (disable) {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         } else {
