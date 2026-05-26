@@ -1,2 +1,9 @@
 # Allow KProfiles to be adjusted by a system app
 allow system_app sysfs_kprofiles:file rw_file_perms;
+allow system_app hal_camera_default:binder call;
+allow system_app hal_fingerprint_default:binder call;
+allow system_app hal_bootctl_default:binder call;
+
+# Zram
+allow system_app sysfs_zram:dir r_dir_perms;
+allow system_app sysfs_zram:file r_file_perms;
