@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.os.Parcel;
 import android.os.RemoteException;
 import com.oplus.app.OplusAppInfo;
+import com.oplus.app.OplusTaskInfoChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,5 +87,21 @@ public class OplusActivityTaskManager extends OplusBaseActivityTaskManager imple
             data.recycle();
             reply.recycle();
         }
+    }
+
+    // --- OplusActivityTaskManager extensions expected by the OxygenOS camera app.
+    // The real ColorOS/OxygenOS framework registers task-info listeners with the system
+    // service; on AOSP there is no such service, so these are no-op stubs that report
+    // success and never deliver events. (Matches the in-APK stub return values.)
+    public boolean registerTaskInfoChangeListener(OplusTaskInfoChangeListener listener, int callingUid, int taskInfoType) {
+        return true;
+    }
+
+    public List<OplusAppInfo> getVisibleTasks(int displayId) {
+        return null;
+    }
+
+    public boolean unregisterTaskInfoChangeListener(OplusTaskInfoChangeListener listener) {
+        return false;
     }
 }
