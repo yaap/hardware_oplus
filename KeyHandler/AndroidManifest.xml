@@ -60,6 +60,9 @@
             <meta-data
                 android:name="com.android.settings.category"
                 android:value="com.android.settings.category.ia.system" />
+            <meta-data
+                android:name="com.android.settings.group_key"
+                android:value="device_category" />
         </activity>
 
         <service
