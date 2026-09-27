@@ -8,6 +8,9 @@ type vendor_hal_commondcs_hwservice, hwservice_manager_type, protected_hwservice
 # Cryptoeng
 type hal_cryptoeng_hwservice, hwservice_manager_type, protected_hwservice;
 
+# Face unlock
+type vendor_hal_face_hwservice, hwservice_manager_type, protected_hwservice;
+
 # ORMS
 type vendor_hal_orms_hwservice, hwservice_manager_type, protected_hwservice;
 
