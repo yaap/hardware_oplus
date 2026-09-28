@@ -1,9 +1,6 @@
 # eSIM
 vendor_internal_prop(vendor_oplus_esim_prop)
 
-# Face
-vendor_internal_prop(vendor_face_prop)
-
 # Fingerprint
 vendor_internal_prop(vendor_fingerprint_prop)
 
