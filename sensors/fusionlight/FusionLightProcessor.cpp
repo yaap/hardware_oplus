@@ -176,6 +176,47 @@ std::optional<double> CalculateCorrectedLux(const FusionConfig& config,
     return CalculateLux(config, compensated, brightness, false);
 }
 
+double EvaluatePolynomial(const Polynomial& polynomial, double x) {
+    return ((polynomial[0] * x + polynomial[1]) * x + polynomial[2]) * x + polynomial[3];
+}
+
+int FindLegacyMode(const LegacyModel& model, int32_t brightness) {
+    if (model.mode_count != kLegacyModeCount) {
+        return 0;
+    }
+    if (brightness <= model.mode_brightness[2]) {
+        return 2;
+    }
+    return brightness <= model.mode_brightness[1] ? 1 : 0;
+}
+
+std::optional<double> CalculateLegacyCorrectedLux(const FusionConfig& config,
+                                                  const PendingEvent& pending_event,
+                                                  const CwbSample& sample) {
+    const LegacyModel& model = *config.legacy;
+    const int32_t brightness = pending_event.brightness;
+    const int level = FindRange(config.linearity_brightness, brightness);
+    if (level < 0 || level >= config.linearity.size()) {
+        return std::nullopt;
+    }
+
+    const int mode = FindLegacyMode(model, brightness);
+    const Eigen::Vector3d screen(sample.r, sample.g, sample.b);
+    Channels compensated;
+    for (int channel = 0; channel < kChannelCount; ++channel) {
+        const auto& parameters = model.parameters[mode][channel];
+        const double grey =
+                EvaluatePolynomial(parameters[3], model.grey_scale[mode][channel].dot(screen));
+        double leakage = EvaluatePolynomial(parameters[0], screen[0]) +
+                         EvaluatePolynomial(parameters[1], screen[1]) +
+                         EvaluatePolynomial(parameters[2], screen[2]) - grey;
+        const double linearity = EvaluatePolynomial(config.linearity[level][channel], brightness);
+        leakage = std::max(linearity * leakage, 0.0);
+        compensated[channel] = std::max(pending_event.raw_channels[channel] - leakage, 0.0);
+    }
+    return CalculateLux(config, compensated, brightness, false);
+}
+
 std::optional<CwbSample> SelectScreenSample(std::chrono::nanoseconds event_time,
                                             const std::deque<CwbSample>& samples) {
     for (auto sample = samples.rbegin(); sample != samples.rend(); ++sample) {
@@ -232,7 +273,10 @@ struct FusionLightProcessor::SharedState {
     }
 
     void calibrateWithSampleLocked(PendingEvent& pending_event, const CwbSample& sample) {
-        const auto lux = CalculateCorrectedLux(config, calibration, pending_event, sample);
+        const auto lux = config.legacy.has_value()
+                                 ? CalculateLegacyCorrectedLux(config, pending_event, sample)
+                                 : CalculateCorrectedLux(config, calibration, pending_event,
+                                                         sample);
         if (lux.has_value()) {
             pending_event.event.u.scalar = *lux;
         } else {
@@ -331,13 +375,15 @@ bool FusionLightProcessor::initializeLocked() {
 
     auto config = profile_sensor_name_.empty() ? std::optional<FusionConfig>{}
                                                : LoadConfig(profile_sensor_name_);
-    if (!config.has_value() || !config->cwb_supported || !config->fusion_rgb_supported ||
-        !config->screenshot_v2_1_supported) {
-        LOG(WARNING) << "FusionLight V2.1 is disabled or unavailable; passing raw lux";
+    if (!config.has_value() || !config->cwb_supported || !config->fusion_rgb_supported) {
+        LOG(WARNING) << "FusionLight is disabled or unavailable; passing raw lux";
         return false;
     }
 
-    std::vector<Channels> calibration = LoadCalibration(*config);
+    std::vector<Channels> calibration;
+    if (!config->legacy.has_value()) {
+        calibration = LoadCalibration(*config);
+    }
     sampler_.setConfig(config->cwb);
     {
         std::lock_guard lock(state_->mutex);

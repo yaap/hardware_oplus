@@ -34,6 +34,7 @@ constexpr int32_t kPanelInfoFeature = 9;
 constexpr int32_t kMainPanelStageFeature = 0x22;
 constexpr int32_t kDefaultPanelStage = 4;
 constexpr auto kCwbWeightsPath = "/odm/etc/display/cwb_weightspos.json";
+constexpr auto kDefaultScreenshotPeriod = 250ms;
 
 bool ReadNumber(const Json::Value& value, double& result) {
     if (value.isString()) {
@@ -260,36 +261,177 @@ bool ParseCZeroThresholds(const Json::Value& array, std::vector<double>& thresho
     return std::all_of(seen.begin(), seen.end(), [](bool value) { return value; });
 }
 
-bool ParseConfig(std::istream& stream, FusionConfig& config, std::string& error) {
-    Json::CharReaderBuilder builder;
-    builder["collectComments"] = false;
-    Json::Value root;
-    if (!Json::parseFromStream(builder, stream, &root, &error)) {
+bool ParseLegacyParameters(const Json::Value& array,
+                           std::array<Polynomial, kLegacyColorCount>& parameters) {
+    if (!array.isArray() || array.size() != kLegacyColorCount) {
         return false;
     }
+    // The colour parameter tables store the highest power in Parameter3.
+    constexpr const char* kNames[] = {"Parameter3", "Parameter2", "Parameter1", "Parameter0"};
+    std::array<bool, kLegacyColorCount> seen{};
+    for (const auto& item : array) {
+        int32_t color;
+        if (!ReadRequiredInt(item, "Color", color) || color < 0 || color >= kLegacyColorCount ||
+            seen[color]) {
+            return false;
+        }
+        for (int term = 0; term < Polynomial::SizeAtCompileTime; ++term) {
+            if (!ReadNumber(item[kNames[term]], parameters[color][term])) {
+                return false;
+            }
+        }
+        seen[color] = true;
+    }
+    return true;
+}
 
-    const auto& common = root["CommonConfig"];
-    const auto& crop = common["ScreenShotRect"];
-    const auto& resolution = common["ScreenResolution"];
-    if (!common.isObject() || !crop.isObject() || !resolution.isObject() ||
-        !ReadRequiredInt(crop, "LeftTopX", config.cwb.crop_left) ||
-        !ReadRequiredInt(crop, "LeftTopY", config.cwb.crop_top) ||
-        !ReadRequiredInt(crop, "RightBottomX", config.cwb.crop_right) ||
-        !ReadRequiredInt(crop, "RightBottomY", config.cwb.crop_bottom) ||
-        !ReadRequiredInt(resolution, "Width", config.cwb.reference_width) ||
-        !ReadRequiredInt(resolution, "Height", config.cwb.reference_height) ||
-        !ReadRequiredDuration(common, "CWBScreenshotPeriod", config.cwb.screenshot_period)) {
-        error = "invalid CommonConfig";
+bool ParseLegacyGreyScale(const Json::Value& array,
+                          std::array<GreyScale, kChannelCount>& grey_scale) {
+    if (!array.isArray() || array.size() != kChannelCount) {
         return false;
     }
+    constexpr const char* kNames[] = {"RGreyscale", "GGreyscale", "BGreyscale"};
+    std::array<bool, kChannelCount> seen{};
+    for (const auto& item : array) {
+        int32_t channel;
+        if (!ReadRequiredInt(item, "Channel", channel) || channel < 0 || channel >= kChannelCount ||
+            seen[channel]) {
+            return false;
+        }
+        for (int color = 0; color < GreyScale::SizeAtCompileTime; ++color) {
+            if (!ReadNumber(item[kNames[color]], grey_scale[channel][color])) {
+                return false;
+            }
+        }
+        seen[channel] = true;
+    }
+    return true;
+}
 
-    config.fusion_rgb_supported = common["FusionRGBSupported"].asBool();
-    config.cwb_supported = common["CWBSupported"].asBool();
-    config.cwb.screenshot_weighted = common["SupportCWBScreenshotWeighted"].asBool();
-    config.screenshot_v2_1_supported = common["SupportScreenshotAlgorithm_V2_1"].asBool();
-    config.screen_off_lux_supported = common["ScreenOffCalLuxSupported"].asBool();
-    config.channel_count_policy_supported = common["ChannelCountPolicySupported"].asBool();
+// Unlike the colour parameter tables, Parameter0 is the highest power here.
+bool ParseLegacyLinearity(const Json::Value& array,
+                          std::vector<std::array<Polynomial, kChannelCount>>& linearity) {
+    if (!array.isArray() || array.empty()) {
+        return false;
+    }
+    constexpr const char* kNames[] = {"Parameter0", "Parameter1", "Parameter2", "Parameter3"};
+    linearity.assign(array.size(), {});
+    std::vector<std::array<bool, kChannelCount>> seen(array.size());
+    for (const auto& item : array) {
+        int32_t level;
+        if (!ReadRequiredInt(item, "Function", level) || level < 0 || level >= array.size() ||
+            !item["LinearityParameter"].isArray()) {
+            return false;
+        }
+        for (const auto& entry : item["LinearityParameter"]) {
+            int32_t channel;
+            if (!ReadRequiredInt(entry, "Channel", channel) || channel < 0 ||
+                channel >= kChannelCount || seen[level][channel]) {
+                return false;
+            }
+            for (int term = 0; term < Polynomial::SizeAtCompileTime; ++term) {
+                if (!ReadNumber(entry[kNames[term]], linearity[level][channel][term])) {
+                    return false;
+                }
+            }
+            seen[level][channel] = true;
+        }
+    }
+    for (const auto& level : seen) {
+        if (!std::all_of(level.begin(), level.end(), [](bool value) { return value; })) {
+            return false;
+        }
+    }
+    return true;
+}
 
+// One table set of a pre-V2.1 profile: the unprefixed tables, or the M_ / L_ ones.
+bool ParseLegacyTables(const Json::Value& root, const std::string& prefix, int mode,
+                       FusionConfig& config, LegacyModel& model) {
+    constexpr const char* kParameterTables[] = {"RParameters", "GParameters", "BParameters",
+                                                "CParameters"};
+    constexpr std::array<const char*, kIrBandCount> kLuxTables = {"LuxCoeffLIR", "LuxCoeffHIR",
+                                                                  "LuxCoeffSuperHIR"};
+    std::vector<ValueRange> brightness;
+    std::array<std::vector<Channels>, kIrBandCount> tables;
+    if (!ParseRanges(root[prefix + "IRBrightness"], "BrightnessMin", "BrightnessMax", brightness) ||
+        !ParseLegacyGreyScale(root[prefix + "GreyScale"], model.grey_scale[mode])) {
+        return false;
+    }
+    for (int channel = 0; channel < kChannelCount; ++channel) {
+        if (!ParseLegacyParameters(root[prefix + kParameterTables[channel]],
+                                   model.parameters[mode][channel])) {
+            return false;
+        }
+    }
+    for (int band = 0; band < kIrBandCount; ++band) {
+        if (!ParseLuxCoefficients(root[prefix + kLuxTables[band]], tables[band])) {
+            return false;
+        }
+    }
+
+    // The selectors are concatenated in brightness order, so one lookup finds mode and level.
+    config.ir_brightness.insert(config.ir_brightness.end(), brightness.begin(), brightness.end());
+    for (int band = 0; band < kIrBandCount; ++band) {
+        auto& coefficients = config.lux_coefficients[band];
+        coefficients.insert(coefficients.end(), tables[band].begin(), tables[band].end());
+    }
+    return true;
+}
+
+bool ParseLegacyModel(const Json::Value& root, FusionConfig& config, std::string& error) {
+    const auto& brightnesses = root["FusionLightBrightnesses"];
+    LegacyModel model;
+    if (!brightnesses.isArray() ||
+        (brightnesses.size() != 1 && brightnesses.size() != kLegacyModeCount)) {
+        error = "invalid FusionLightBrightnesses";
+        return false;
+    }
+    model.mode_count = brightnesses.size() == kLegacyModeCount ? kLegacyModeCount : 1;
+    std::array<bool, kLegacyModeCount> seen{};
+    for (const auto& item : brightnesses) {
+        int32_t level;
+        if (!ReadRequiredInt(item, "Level", level) || level < 0 || level >= model.mode_count ||
+            seen[level] || !ReadRequiredInt(item, "Brightness", model.mode_brightness[level])) {
+            error = "invalid FusionLightBrightnesses";
+            return false;
+        }
+        seen[level] = true;
+    }
+
+    // Stock only switches table sets when all three modes are defined; parse dimmest first.
+    constexpr std::array<const char*, kLegacyModeCount> kPrefixes = {"L_", "M_", ""};
+    constexpr std::array<int, kLegacyModeCount> kModes = {2, 1, 0};
+    for (int index = kLegacyModeCount - model.mode_count; index < kLegacyModeCount; ++index) {
+        if (!ParseLegacyTables(root, kPrefixes[index], kModes[index], config, model)) {
+            error = android::base::StringPrintf("invalid %sleakage model", kPrefixes[index]);
+            return false;
+        }
+    }
+
+    if (!ParseRanges(root["LinearityBrightnessRange"], "BrightnessMin", "BrightnessMax",
+                     config.linearity_brightness) ||
+        !ParseLegacyLinearity(root["Linearity"], config.linearity) ||
+        config.linearity.size() != config.linearity_brightness.size()) {
+        error = "invalid Linearity";
+        return false;
+    }
+    if (!ParseRanges(root["IRThreshold"], "IR_Ratio_Min", "IR_Ratio_Max", config.ir_thresholds) ||
+        config.ir_thresholds.size() != kIrBandCount) {
+        error = "invalid IRThreshold";
+        return false;
+    }
+    for (int band = 0; band < kIrBandCount; ++band) {
+        if (config.lux_coefficients[band].size() < config.ir_brightness.size()) {
+            error = "coefficient table does not cover its selector";
+            return false;
+        }
+    }
+    config.legacy = std::move(model);
+    return true;
+}
+
+bool ParseV2_1Model(const Json::Value& root, FusionConfig& config, std::string& error) {
     if (!ParseRanges(root["LinearityBrightnessRange"], "BrightnessMin", "BrightnessMax",
                      config.linearity_brightness) ||
         !ParseRanges(root["IRBrightness_V2_1"], "BrightnessMin", "BrightnessMax",
@@ -306,16 +448,37 @@ bool ParseConfig(std::istream& stream, FusionConfig& config, std::string& error)
 
     constexpr std::array<const char*, kIrBandCount> kDefaultTables = {
             "LuxCoeffLIR_V2_1", "LuxCoeffHIR_V2_1", "LuxCoeffSuperHIR_V2_1"};
+    for (int band = 0; band < kIrBandCount; ++band) {
+        if (!ParseLuxCoefficients(root[kDefaultTables[band]], config.lux_coefficients[band])) {
+            error = "invalid normal lux coefficient table";
+            return false;
+        }
+    }
+
+    const size_t levels = config.linearity_brightness.size();
+    if (levels == 0 || config.linearity.size() != levels || config.leakage.size() != levels ||
+        config.leakage_ratio.size() != levels || config.leakage_golden.size() != levels ||
+        config.ir_thresholds.size() != kIrBandCount || config.ir_brightness.empty()) {
+        error = "inconsistent profile dimensions";
+        return false;
+    }
+    for (int band = 0; band < kIrBandCount; ++band) {
+        if (config.lux_coefficients[band].size() < config.ir_brightness.size()) {
+            error = "coefficient table does not cover its selector";
+            return false;
+        }
+    }
+    return true;
+}
+
+// The channel-count and screen-off tables use the same keys in both profile formats.
+bool ParseSharedTables(const Json::Value& root, FusionConfig& config, std::string& error) {
     constexpr std::array<const char*, kIrBandCount> kCountTables = {
             "LuxCoeffLirChCountPolicy", "LuxCoeffHirChCountPolicy",
             "LuxCoeffSuperHirChCountPolicy"};
     constexpr std::array<const char*, kIrBandCount> kScreenOffTables = {
             "LuxCoeffLirScreenOff", "LuxCoeffHirScreenOff", "LuxCoeffSuperHirScreenOff"};
     for (int band = 0; band < kIrBandCount; ++band) {
-        if (!ParseLuxCoefficients(root[kDefaultTables[band]], config.lux_coefficients[band])) {
-            error = "invalid normal lux coefficient table";
-            return false;
-        }
         if (config.channel_count_policy_supported &&
             !ParseLuxCoefficients(root[kCountTables[band]],
                                   config.channel_count_coefficients[band])) {
@@ -341,22 +504,8 @@ bool ParseConfig(std::istream& stream, FusionConfig& config, std::string& error)
         return false;
     }
 
-    const size_t levels = config.linearity_brightness.size();
-    if (levels == 0 || config.linearity.size() != levels || config.leakage.size() != levels ||
-        config.leakage_ratio.size() != levels || config.leakage_golden.size() != levels ||
-        config.ir_thresholds.size() != kIrBandCount || config.ir_brightness.empty() ||
-        config.cwb.crop_left < 0 || config.cwb.crop_top < 0 ||
-        config.cwb.crop_right <= config.cwb.crop_left ||
-        config.cwb.crop_bottom <= config.cwb.crop_top ||
-        config.cwb.crop_right > config.cwb.reference_width ||
-        config.cwb.crop_bottom > config.cwb.reference_height ||
-        config.cwb.screenshot_period <= 0ms) {
-        error = "inconsistent profile dimensions";
-        return false;
-    }
     for (int band = 0; band < kIrBandCount; ++band) {
-        if (config.lux_coefficients[band].size() < config.ir_brightness.size() ||
-            (config.channel_count_policy_supported &&
+        if ((config.channel_count_policy_supported &&
              config.channel_count_coefficients[band].size() < config.channel_thresholds.size()) ||
             (config.screen_off_lux_supported &&
              config.screen_off_coefficients[band].size() < config.c_zero_thresholds.size())) {
@@ -365,6 +514,53 @@ bool ParseConfig(std::istream& stream, FusionConfig& config, std::string& error)
         }
     }
     return true;
+}
+
+bool ParseConfig(std::istream& stream, FusionConfig& config, std::string& error) {
+    Json::CharReaderBuilder builder;
+    builder["collectComments"] = false;
+    Json::Value root;
+    if (!Json::parseFromStream(builder, stream, &root, &error)) {
+        return false;
+    }
+
+    const auto& common = root["CommonConfig"];
+    const auto& crop = common["ScreenShotRect"];
+    const auto& resolution = common["ScreenResolution"];
+    config.cwb.screenshot_period = kDefaultScreenshotPeriod;
+    if (!common.isObject() || !crop.isObject() || !resolution.isObject() ||
+        !ReadRequiredInt(crop, "LeftTopX", config.cwb.crop_left) ||
+        !ReadRequiredInt(crop, "LeftTopY", config.cwb.crop_top) ||
+        !ReadRequiredInt(crop, "RightBottomX", config.cwb.crop_right) ||
+        !ReadRequiredInt(crop, "RightBottomY", config.cwb.crop_bottom) ||
+        !ReadRequiredInt(resolution, "Width", config.cwb.reference_width) ||
+        !ReadRequiredInt(resolution, "Height", config.cwb.reference_height) ||
+        (common.isMember("CWBScreenshotPeriod") &&
+         !ReadRequiredDuration(common, "CWBScreenshotPeriod", config.cwb.screenshot_period))) {
+        error = "invalid CommonConfig";
+        return false;
+    }
+    if (config.cwb.crop_left < 0 || config.cwb.crop_top < 0 ||
+        config.cwb.crop_right <= config.cwb.crop_left ||
+        config.cwb.crop_bottom <= config.cwb.crop_top ||
+        config.cwb.crop_right > config.cwb.reference_width ||
+        config.cwb.crop_bottom > config.cwb.reference_height ||
+        config.cwb.screenshot_period <= 0ms) {
+        error = "inconsistent screenshot geometry";
+        return false;
+    }
+
+    config.fusion_rgb_supported = common["FusionRGBSupported"].asBool();
+    config.cwb_supported = common["CWBSupported"].asBool();
+    config.cwb.screenshot_weighted = common["SupportCWBScreenshotWeighted"].asBool();
+    config.screenshot_v2_1_supported = common["SupportScreenshotAlgorithm_V2_1"].asBool();
+    config.screen_off_lux_supported = common["ScreenOffCalLuxSupported"].asBool();
+    config.channel_count_policy_supported = common["ChannelCountPolicySupported"].asBool();
+
+    const bool model_parsed = config.screenshot_v2_1_supported
+                                      ? ParseV2_1Model(root, config, error)
+                                      : ParseLegacyModel(root, config, error);
+    return model_parsed && ParseSharedTables(root, config, error);
 }
 
 void LoadCwbWeights(CwbConfig& config) {
@@ -582,7 +778,7 @@ std::optional<FusionConfig> LoadConfig(const std::string& sensor_name) {
     const int32_t module_id = GetFusionSensorModuleId(sensor_name);
     const auto path = FindProfilePath(panel->panel_id, module_id, panel->panel_stage);
     if (!path.has_value()) {
-        LOG(ERROR) << "FusionLight V2.1 profile was not found for panel " << panel->panel_id
+        LOG(ERROR) << "FusionLight profile was not found for panel " << panel->panel_id
                    << ", sensor module " << module_id << ", stage " << panel->panel_stage;
         return std::nullopt;
     }
@@ -599,7 +795,7 @@ std::optional<FusionConfig> LoadConfig(const std::string& sensor_name) {
         return std::nullopt;
     }
     LoadCwbWeights(config.cwb);
-    LOG(INFO) << "Loaded FusionLight V2.1 profile from " << *path;
+    LOG(INFO) << "Loaded FusionLight profile from " << *path;
     return config;
 }
 

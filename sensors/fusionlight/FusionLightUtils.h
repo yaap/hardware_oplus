@@ -27,10 +27,27 @@ using ChannelLimits = Eigen::Matrix<int, kChannelCount, 1>;
 using Polynomial = Eigen::Vector4d;
 using LeakageModel = Eigen::Matrix<double, kLeakageTermCount, 1>;
 using RatioModel = Eigen::Matrix<double, kRatioTermCount, 1>;
+using GreyScale = Eigen::Vector3d;
+
+constexpr int kLegacyColorCount = 4;
+constexpr int kLegacyModeCount = 3;
 
 struct ValueRange {
     double min = 0.0;
     double max = 0.0;
+};
+
+// Leakage model of profiles that predate SupportScreenshotAlgorithm_V2_1.
+struct LegacyModel {
+    // [mode][channel] leakage polynomial per screen colour (red, green, blue, grey).
+    std::array<std::array<std::array<Polynomial, kLegacyColorCount>, kChannelCount>,
+               kLegacyModeCount>
+            parameters;
+    // [mode][channel] screen colour mix the grey term is evaluated at.
+    std::array<std::array<GreyScale, kChannelCount>, kLegacyModeCount> grey_scale;
+    // FusionLightBrightnesses, indexed by level.
+    std::array<int32_t, kLegacyModeCount> mode_brightness{};
+    int mode_count = 1;
 };
 
 struct CwbConfig {
@@ -67,6 +84,9 @@ struct FusionConfig {
     std::array<std::vector<Channels>, kIrBandCount> screen_off_coefficients;
     std::vector<ChannelLimits> channel_thresholds;
     std::vector<double> c_zero_thresholds;
+
+    // Set instead of the V2.1 model when the profile predates SupportScreenshotAlgorithm_V2_1.
+    std::optional<LegacyModel> legacy;
 };
 
 std::optional<FusionConfig> LoadConfig(const std::string& sensor_name);
