@@ -5,10 +5,11 @@
 
 #pragma once
 
-#include "FusionLightUtils.h"
+#include "CwbSampler.h"
 
 #include <android-base/macros.h>
 
+#include <memory>
 #include <thread>
 
 namespace android {
@@ -19,32 +20,13 @@ namespace subhal {
 namespace implementation {
 namespace fusionlight {
 
-struct CwbSample {
-    int32_t r = 0;
-    int32_t g = 0;
-    int32_t b = 0;
-    std::chrono::nanoseconds frame_start{0};
-    std::chrono::nanoseconds frame_end{0};
-};
-
-class ScreenSampler {
+// Samples the screen colour through the ALS capture service instead of CWB.
+class AlsSampler final : public ScreenSampler {
   public:
-    using SampleCallback = std::function<void(std::optional<CwbSample>)>;
+    explicit AlsSampler(SampleCallback sample_callback);
+    ~AlsSampler() override;
 
-    virtual ~ScreenSampler() = default;
-
-    virtual void setConfig(CwbConfig config) = 0;
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void requestSample() = 0;
-};
-
-class CwbSampler final : public ScreenSampler {
-  public:
-    explicit CwbSampler(SampleCallback sample_callback);
-    ~CwbSampler() override;
-
-    DISALLOW_COPY_AND_ASSIGN(CwbSampler);
+    DISALLOW_COPY_AND_ASSIGN(AlsSampler);
 
     void setConfig(CwbConfig config) override;
     void start() override;
@@ -53,7 +35,6 @@ class CwbSampler final : public ScreenSampler {
 
   private:
     struct SharedState;
-    class DisplayCallback;
 
     void threadLoop();
 
