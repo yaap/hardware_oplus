@@ -5,10 +5,12 @@
 
 #pragma once
 
-#include "CwbSampler.h"
+#include "ScreenSampler.h"
 
 #include <android-base/macros.h>
 #include <android/hardware/sensors/2.1/types.h>
+
+#include <memory>
 
 namespace android {
 namespace hardware {
@@ -39,11 +41,12 @@ class FusionLightProcessor final {
     struct SharedState;
 
     bool initializeLocked();
+    void handleSample(std::optional<CwbSample> sample);
     void enqueueReady(Event event);
     void processScreenOff(Event event, const Channels& raw_channels, int32_t brightness);
 
     std::shared_ptr<SharedState> state_;
-    CwbSampler sampler_;
+    std::unique_ptr<ScreenSampler> sampler_;
     std::mutex lifecycle_mutex_;
     std::string profile_sensor_name_;
 };

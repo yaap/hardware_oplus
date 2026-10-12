@@ -7,11 +7,13 @@ cc_library_shared {
     name: "sensors.fusionlight",
     defaults: ["hidl_defaults"],
     srcs: [
-        "CwbSampler.cpp",
         "FusionLightUtils.cpp",
         "FusionLightProcessor.cpp",
         "SensorsSubHal.cpp",
-    ],
+    ] + select(soong_config_variable("oplus_sensors", "uses_als_capture"), {
+        "true": ["AlsSampler.cpp"],
+        default: ["CwbSampler.cpp"],
+    }),
     shared_libs: [
         "android.hardware.sensors@2.0",
         "android.hardware.sensors@2.0-ScopedWakelock",
@@ -26,8 +28,10 @@ cc_library_shared {
         "libutils",
         "vendor.oplus.hardware.displaypanelfeature-V1-ndk",
         "vendor.oplus.hardware.oplusSensor-V1-ndk",
-        "vendor.qti.hardware.display.config-V12-ndk",
-    ],
+    ] + select(soong_config_variable("oplus_sensors", "uses_als_capture"), {
+        "true": ["vendor.lineage.oplus_als-V1-ndk"],
+        default: ["vendor.qti.hardware.display.config-V12-ndk"],
+    }),
     static_libs: [
         "libaidlcommonsupport",
     ],
@@ -38,7 +42,10 @@ cc_library_shared {
     ],
     cflags: [
         "-DLOG_TAG=\"sensors.fusionlight\"",
-    ] + select(soong_config_variable("OPLUS_SENSORS_FUSIONLIGHT", "BACKEND_SUBHAL_LIB_NAME"), {
+    ] + select(soong_config_variable("oplus_sensors", "uses_als_capture"), {
+        "true": ["-DUSES_ALS_CAPTURE"],
+        default: [],
+    }) + select(soong_config_variable("OPLUS_SENSORS_FUSIONLIGHT", "BACKEND_SUBHAL_LIB_NAME"), {
         any @ flag_val: ["-DBACKEND_SUBHAL_LIB_NAME=\"" + flag_val + "\""],
         default: [],
     }),

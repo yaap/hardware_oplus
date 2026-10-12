@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "FusionLightUtils.h"
+#include "ScreenSampler.h"
 
 #include <android-base/macros.h>
 
@@ -19,27 +19,17 @@ namespace subhal {
 namespace implementation {
 namespace fusionlight {
 
-struct CwbSample {
-    int32_t r = 0;
-    int32_t g = 0;
-    int32_t b = 0;
-    std::chrono::nanoseconds frame_start{0};
-    std::chrono::nanoseconds frame_end{0};
-};
-
-class CwbSampler final {
+class CwbSampler final : public ScreenSampler {
   public:
-    using SampleCallback = std::function<void(std::optional<CwbSample>)>;
-
     explicit CwbSampler(SampleCallback sample_callback);
-    ~CwbSampler();
+    ~CwbSampler() override;
 
     DISALLOW_COPY_AND_ASSIGN(CwbSampler);
 
-    void setConfig(CwbConfig config);
-    void start();
-    void stop();
-    void requestSample();
+    void setConfig(CwbConfig config) override;
+    void start() override;
+    void stop() override;
+    void requestSample() override;
 
   private:
     struct SharedState;

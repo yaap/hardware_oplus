@@ -5,6 +5,12 @@
 
 #include "FusionLightProcessor.h"
 
+#ifdef USES_ALS_CAPTURE
+#include "AlsSampler.h"
+#else
+#include "CwbSampler.h"
+#endif
+
 #include <android-base/logging.h>
 #include <android-base/properties.h>
 
@@ -482,7 +488,15 @@ bool FusionLightProcessor::initializeLocked() {
     } else {
         view_calibration = LoadViewCalibration(*config);
     }
-    sampler_.setConfig(config->cwb);
+    if (!sampler_) {
+        auto callback = [this](std::optional<CwbSample> sample) { handleSample(std::move(sample)); };
+#ifdef USES_ALS_CAPTURE
+        sampler_ = std::make_unique<AlsSampler>(std::move(callback));
+#else
+        sampler_ = std::make_unique<CwbSampler>(std::move(callback));
+#endif
+    }
+    sampler_->setConfig(config->cwb);
     {
         std::lock_guard lock(state_->mutex);
         state_->config = std::move(*config);
@@ -514,7 +528,9 @@ void FusionLightProcessor::setEnabled(bool enabled) {
         std::lock_guard lock(state_->mutex);
         state_->active = false;
     }
-    sampler_.stop();
+    if (sampler_) {
+        sampler_->stop();
+    }
     {
         std::lock_guard lock(state_->mutex);
         state_->screen_samples.clear();
@@ -547,7 +563,7 @@ void FusionLightProcessor::processScreenOff(Event event, const Channels& raw_cha
     bool should_dispatch = false;
     {
         std::lock_guard lifecycle_lock(lifecycle_mutex_);
-        sampler_.stop();
+        sampler_->stop();
         {
             std::lock_guard lock(state_->mutex);
             if (!state_->active) {
@@ -640,10 +656,10 @@ void FusionLightProcessor::process(const Event& event, int32_t fusion_light_hand
             }
         }
         if (start_sampler) {
-            sampler_.start();
+            sampler_->start();
         }
         if (brightness_changed) {
-            sampler_.requestSample();
+            sampler_->requestSample();
         }
     }
 
@@ -684,37 +700,38 @@ void FusionLightProcessor::completeFlush(Event event) {
 }
 
 FusionLightProcessor::FusionLightProcessor(EmitCallback emit_callback)
-    : state_(std::make_shared<SharedState>(std::move(emit_callback))),
-      sampler_([state = std::weak_ptr<SharedState>(state_)](std::optional<CwbSample> sample) {
-          const auto shared_state = state.lock();
-          if (shared_state == nullptr) {
-              return;
-          }
+    : state_(std::make_shared<SharedState>(std::move(emit_callback))) {}
 
-          bool should_dispatch = false;
-          {
-              std::lock_guard lock(shared_state->mutex);
-              if (!shared_state->active) {
-                  return;
-              }
-              if (!sample.has_value() || sample->frame_start <= 0ns ||
-                  sample->frame_end <= sample->frame_start) {
-                  shared_state->cwb_failed = true;
-                  shared_state->finishWaitingLocked();
-              } else if (sample->frame_start >= shared_state->minimum_frame_start) {
-                  shared_state->cwb_failed = false;
-                  shared_state->screen_samples.push_back(*sample);
-                  while (shared_state->screen_samples.size() > kMaxScreenSamples) {
-                      shared_state->screen_samples.pop_front();
-                  }
-                  shared_state->finishWaitingWithSampleLocked();
-              }
-              should_dispatch = shared_state->startDispatchLocked();
-          }
-          if (should_dispatch) {
-              shared_state->dispatch();
-          }
-      }) {}
+void FusionLightProcessor::handleSample(std::optional<CwbSample> sample) {
+    const auto shared_state = std::weak_ptr<SharedState>(state_).lock();
+    if (shared_state == nullptr) {
+        return;
+    }
+
+    bool should_dispatch = false;
+    {
+        std::lock_guard lock(shared_state->mutex);
+        if (!shared_state->active) {
+            return;
+        }
+        if (!sample.has_value() || sample->frame_start <= 0ns ||
+            sample->frame_end <= sample->frame_start) {
+            shared_state->cwb_failed = true;
+            shared_state->finishWaitingLocked();
+        } else if (sample->frame_start >= shared_state->minimum_frame_start) {
+            shared_state->cwb_failed = false;
+            shared_state->screen_samples.push_back(*sample);
+            while (shared_state->screen_samples.size() > kMaxScreenSamples) {
+                shared_state->screen_samples.pop_front();
+            }
+            shared_state->finishWaitingWithSampleLocked();
+        }
+        should_dispatch = shared_state->startDispatchLocked();
+    }
+    if (should_dispatch) {
+        shared_state->dispatch();
+    }
+}
 
 FusionLightProcessor::~FusionLightProcessor() {
     setEnabled(false);
