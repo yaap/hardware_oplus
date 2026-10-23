@@ -21,6 +21,11 @@
 #include <android-base/strings.h>
 #include <android/binder_manager.h>
 
+#include <cerrno>
+#include <cstdint>
+#include <cstdlib>
+#include <limits>
+
 #include <TouchscreenGestureConfig.h>
 
 using ::android::base::Trim;
@@ -48,29 +53,50 @@ Return<void> TouchscreenGesture::getSupportedGestures(getSupportedGestures_cb re
 }
 
 Return<bool> TouchscreenGesture::setGestureEnabled(const Gesture& gesture, bool enabled) {
-    std::string tmp = "OPTG";
-    int contents = 0;
-    int result;
+    const int gestureId = gesture.keycode - kGestureStartKey;
+    if (gestureId < 0 || gestureId >= 32) {
+        LOG(ERROR) << "invalid gesture keycode " << gesture.keycode;
+        return false;
+    }
 
     // Connect to IOplusTouch
     const std::string instance = std::string() + IOplusTouch::descriptor + "/default";
     mTouchService = IOplusTouch::fromBinder(
             ndk::SpAIBinder(AServiceManager_waitForService(instance.c_str())));
-
-    // Read current value
-    mTouchService->touchReadNodeFile(0, 21, &tmp);
-    contents = std::stoi(tmp, nullptr, 16);
-
-    // Manipulate value
-    if (enabled) {
-        contents |= (1 << (gesture.keycode - kGestureStartKey));
-    } else {
-        contents &= ~(1 << (gesture.keycode - kGestureStartKey));
+    if (mTouchService == nullptr) {
+        LOG(WARNING) << "IOplusTouch service is unavailable; keeping software gesture state";
+        return true;
     }
 
-    // Always keep gestures enabled
+    // Read current value. HBP does not provide the legacy double_tap_enable_indep
+    // node, so an empty value is expected on this platform.
+    std::string tmp;
+    const auto readStatus = mTouchService->touchReadNodeFile(0, 21, &tmp);
+    tmp = Trim(tmp);
+    if (!readStatus.isOk() || tmp.empty()) {
+        LOG(INFO) << "gesture mask node unavailable; accepting software gesture state";
+        return true;
+    }
+
+    char* end = nullptr;
+    errno = 0;
+    const long parsed = std::strtol(tmp.c_str(), &end, 16);
+    if (errno != 0 || end == tmp.c_str() || *end != '\0' ||
+        parsed < 0 || parsed > std::numeric_limits<uint32_t>::max()) {
+        LOG(WARNING) << "invalid gesture mask value '" << tmp << "'; accepting software state";
+        return true;
+    }
+
+    uint32_t contents = static_cast<uint32_t>(parsed);
+    if (enabled) {
+        contents |= (1U << gestureId);
+    } else {
+        contents &= ~(1U << gestureId);
+    }
+
+    int result = 0;
+    // Always keep gestures enabled and persist the mask.
     mTouchService->touchWriteNodeFile(0, 1, "1", &result);
-    // Set gesture type
     mTouchService->touchWriteNodeFile(0, 21, std::to_string(contents), &result);
 
     return true;

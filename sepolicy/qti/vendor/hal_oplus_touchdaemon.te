@@ -14,6 +14,11 @@ allow hal_oplus_touchdaemon hal_oplus_touchdaemon:capability sys_nice;
 allow hal_oplus_touchdaemon input_device:dir search;
 allow hal_oplus_touchdaemon input_device:chr_file rw_file_perms;
 
+# Gesture reporting uses a source-created virtual input device so that the
+# gesture scan codes are advertised even when the touch driver's keybit does
+# not contain the legacy KEY_GESTURE_START range.
+allow hal_oplus_touchdaemon uhid_device:chr_file { open read write ioctl getattr };
+
 allow hal_oplus_touchdaemon oplus_touchdaemon_device:chr_file rw_file_perms;
 
 allow hal_oplus_touchdaemon vendor_persist_oplus_touch_file:dir rw_dir_perms;
