@@ -20,6 +20,19 @@ genfscon sysfs /devices/platform/soc/soc:oplus,mms_gauge/oplus_mms        u:obje
 genfscon sysfs /devices/platform/soc/soc:oplus,mms_wired/oplus_mms        u:object_r:vendor_sysfs_wireless:s0
 genfscon sysfs /devices/virtual/oplus_chg                                 u:object_r:vendor_sysfs_usb_supply:s0
 
+genfscon proc /charger_cycle                                         u:object_r:vendor_proc_charger:s0
+genfscon proc /charger_critical_log                                  u:object_r:vendor_proc_charger:s0
+genfscon proc /charger_log                                           u:object_r:vendor_proc_charger:s0
+genfscon proc /ui_soc_decimal                                        u:object_r:vendor_proc_charger:s0
+genfscon proc /fastchg_fw_update                                     u:object_r:vendor_proc_charger:s0
+genfscon proc /tbatt_pwroff                                          u:object_r:vendor_proc_charger:s0
+genfscon proc /devinfo/fastchg                                       u:object_r:vendor_proc_charger:s0
+genfscon proc /devinfo/ufs                                           u:object_r:vendor_proc_charger:s0
+genfscon proc /devinfo/emmc                                          u:object_r:vendor_proc_charger:s0
+genfscon proc /device-tree/soc/qcom,pmic_glink/qcom,battery_charger/qcom,pmic_ftm_vph u:object_r:vendor_proc_charger:s0
+genfscon proc /device-tree/soc/qcom,pmic_glink/qcom,battery_charger/qcom,pmic_ftm_vbat u:object_r:vendor_proc_charger:s0
+genfscon sysfs /devices/platform/soc/soc:oplus,chg_wls/oplus_wireless u:object_r:vendor_sysfs_wireless:s0
+
 # Camera
 genfscon proc /boost_pool/camera_pid     u:object_r:vendor_proc_camera:s0
 genfscon proc /boost_pool/camera_pages   u:object_r:vendor_proc_camera:s0

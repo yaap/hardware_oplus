@@ -38,3 +38,9 @@ type wlchg_device, dev_type;
 
 # Wlschgd
 type wlschgd_device, dev_type;
+
+# Gauged
+type sec_dev_device, dev_type;
+
+# Charger test kit
+type chg_test_kit_device, dev_type;

@@ -209,3 +209,10 @@
 # Wlschgd
 /(odm|vendor/odm)/bin/hw/wlschgd      u:object_r:wlschgd_exec:s0
 /dev/wls_dev                          u:object_r:wlschgd_device:s0
+
+# Gauged
+/(odm|vendor/odm)/bin/hw/gauged       u:object_r:gauged_exec:s0
+/dev/sec_dev                          u:object_r:sec_dev_device:s0
+
+# Charger test kit
+/dev/chg_test_kit                     u:object_r:chg_test_kit_device:s0

@@ -11,7 +11,7 @@ binder_call(vendor_hal_oplus_sensor_client, vendor_hal_oplus_sensor_server)
 hal_attribute_service(vendor_hal_oplus_sensor, hal_oplus_sensor_aidl_service)
 
 allow hal_oplus_sensor_aidl block_device:dir search;
-allow hal_oplus_sensor_aidl vendor_reserve_partition:blk_file r_file_perms;
+allow hal_oplus_sensor_aidl vendor_reserve_partition:blk_file rw_file_perms;
 
 allow hal_oplus_sensor_aidl mnt_vendor_file:dir search;
 
@@ -19,7 +19,7 @@ allow hal_oplus_sensor_aidl vendor_persist_camera_file:dir rw_dir_perms;
 allow hal_oplus_sensor_aidl vendor_persist_camera_file:file create_file_perms;
 allow hal_oplus_sensor_aidl vendor_persist_camera_file:lnk_file r_file_perms;
 
-r_dir_file(hal_oplus_sensor_aidl, vendor_persist_engineer_file)
-r_dir_file(hal_oplus_sensor_aidl, vendor_persist_sensors_file)
+rw_dir_file(hal_oplus_sensor_aidl, vendor_persist_engineer_file)
+rw_dir_file(hal_oplus_sensor_aidl, vendor_persist_sensors_file)
 rw_dir_file(hal_oplus_sensor_aidl, vendor_proc_eng_cali_file)
 rw_dir_file(hal_oplus_sensor_aidl, vendor_proc_oplus_als_file)
