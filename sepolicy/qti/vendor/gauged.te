@@ -1,0 +1,8 @@
+type gauged, domain;
+type gauged_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(gauged)
+
+write_logd(gauged)
+
+allow gauged sec_dev_device:chr_file rw_file_perms;

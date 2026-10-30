@@ -29,3 +29,12 @@ rw_dir_file(hal_oplus_charger_aidl, vendor_sysfs_usb_supply)
 rw_dir_file(hal_oplus_charger_aidl, vendor_proc_charger)
 rw_dir_file(hal_oplus_charger_aidl, vendor_proc_oplus_version)
 rw_dir_file(hal_oplus_charger_aidl, vendor_proc_wireless)
+
+allow hal_oplus_charger_aidl chg_test_kit_device:chr_file rw_file_perms;
+allow hal_oplus_charger_aidl vendor_proc_charger:file rw_file_perms;
+allow hal_oplus_charger_aidl vendor_sysfs_wireless:file rw_file_perms;
+allow hal_oplus_charger_aidl random_device:chr_file r_file_perms;
+allow hal_oplus_charger_aidl vendor_file:dir r_dir_perms;
+allow hal_oplus_charger_aidl vendor_file:file r_file_perms;
+allow hal_oplus_charger_aidl vendor_configs_file:dir r_dir_perms;
+allow hal_oplus_charger_aidl vendor_configs_file:file r_file_perms;
