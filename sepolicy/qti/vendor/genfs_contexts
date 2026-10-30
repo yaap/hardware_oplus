@@ -206,6 +206,7 @@ genfscon sysfs /devices/platform/soc/soc:oplus,mms_gauge/oplus_mms/gauge/wakeup 
 genfscon sysfs /devices/platform/soc/soc:oplus,mms_wired/oplus_mms/wired/usb/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/soc:oplus,mms_wired/oplus_mms/wired/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/soc:oplus,monitor/oplus_mms/error/wakeup u:object_r:sysfs_wakeup:s0
+genfscon sysfs /devices/platform/soc/soc:oplus,plc_charge/oplus_mms/plc/wakeup22 u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/soc:oplus,pps_charge/oplus_mms/pps/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/soc:oplus,track-charge/track/wakeup u:object_r:sysfs_wakeup:s0
 genfscon sysfs /devices/platform/soc/soc:oplus,vooc/oplus_mms/vooc/wakeup u:object_r:sysfs_wakeup:s0
