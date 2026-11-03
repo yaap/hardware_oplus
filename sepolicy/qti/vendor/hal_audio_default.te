@@ -6,3 +6,14 @@ rw_dir_file(hal_audio_default, vendor_sysfs_usb_supply)
 
 get_prop(hal_audio_default, boot_status_prop)
 get_prop(hal_audio_default, vendor_audio_debug_prop)
+
+# TFA98xx calibration sysfs
+allow hal_audio_default sysfs:dir r_dir_perms;
+allow hal_audio_default sysfs:file r_file_perms;
+allow hal_audio_default sysfs:lnk_file r_file_perms;
+allow hal_audio_default vendor_sysfs_tfa98xx:dir r_dir_perms;
+allow hal_audio_default vendor_sysfs_tfa98xx:file rw_file_perms;
+
+# TFA98xx calibration persistence
+allow hal_audio_default vendor_persist_media_file:dir rw_dir_perms;
+allow hal_audio_default vendor_persist_media_file:file create_file_perms;
